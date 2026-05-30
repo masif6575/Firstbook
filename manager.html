@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firstbook — Manager Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#00E676;--green-dark:#00B85C;--green-glow:rgba(0,230,118,0.12);
+  --black:#0A0A0A;--card:#141414;--card2:#1C1C1C;--border:#2A2A2A;
+  --text:#F0F0F0;--muted:#777;--red:#e74c3c;--red-bg:#1a0808;
+  --font-head:'Bebas Neue',sans-serif;--font:'DM Sans',sans-serif;
+}
+body{background:var(--black);color:var(--text);font-family:var(--font);min-height:100vh}
+
+/* LOGIN */
+#loginWrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+#appWrap{display:none;max-width:680px;margin:0 auto;padding:0 16px 60px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:380px}
+.login-logo{font-family:var(--font-head);font-size:36px;letter-spacing:1px;text-align:center;margin-bottom:4px}
+.login-logo em{color:#ccc;font-style:normal}.login-logo span{color:var(--green)}
+.login-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px}
+.fl{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;margin-bottom:16px;transition:border-color .2s}
+.fi:focus{border-color:var(--green-dark)}
+.login-btn{width:100%;background:var(--green);color:#000;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.login-btn:hover{background:var(--green-dark)}
+#loginErr{color:var(--red);font-size:13px;text-align:center;margin-top:12px;display:none;padding:8px;background:var(--red-bg);border-radius:8px;border:1px solid #5a1a1a}
+
+/* APP HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.logo{font-family:var(--font-head);font-size:30px;letter-spacing:1px}
+.logo em{color:#ccc;font-style:normal}.logo span{color:var(--green)}
+.mgr-tag{background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);font-size:11px;padding:4px 12px;border-radius:20px;font-weight:600}
+.logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:var(--font)}
+.logout-btn:hover{border-color:#c0392b;color:var(--red)}
+
+.sec-title{font-family:var(--font-head);font-size:22px;letter-spacing:1px;margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.note-box{background:var(--green-glow);border:1px solid var(--green-dark);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--green);margin-bottom:20px;line-height:1.6}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--green-dark)}
+.form-select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;cursor:pointer}
+.form-select option{background:#1c1c1c}
+
+.slot-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:20px}
+.slot-btn{padding:10px 4px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text);transition:all .2s}
+.slot-btn:hover:not(.sb):not(.sp){border-color:var(--green-dark);color:var(--green)}
+.slot-btn.ss{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
+.slot-btn.sb{background:#180808;border-color:#2a1515;color:#444;cursor:not-allowed;font-size:11px}
+.slot-btn.sp{color:#333;cursor:not-allowed;border-color:#1a1a1a}
+.slot-loading{color:var(--muted);font-size:13px;padding:16px 0;grid-column:1/-1;text-align:center}
+
+.block-btn{width:100%;background:var(--green);color:#000;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px}
+.block-btn:hover{background:var(--green-dark)}
+.block-btn:disabled{background:#2a2a2a;color:#555;cursor:not-allowed}
+
+.recent-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.r-ref{font-family:var(--font-head);font-size:16px;color:var(--green);letter-spacing:1px}
+.r-info{font-size:13px;margin-top:2px}
+.r-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.badge-m{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#0a1a2a;color:#3498db;border:1px solid #1a4a6a}
+
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast.success{border-color:var(--green-dark);color:var(--green)}
+.toast.error{border-color:#c0392b;color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo"><em>First</em><span>book</span></div>
+    <div class="login-sub">Turf Manager Portal</div>
+    <label class="fl">Manager Password</label>
+    <input type="password" class="fi" id="passInput" placeholder="Password দাও">
+    <button class="login-btn" id="loginBtn">Login →</button>
+    <div id="loginErr">❌ ভুল password! আবার চেষ্টা করো।</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appWrap">
+  <header>
+    <div class="logo"><em>First</em><span>book</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="mgr-tag" id="mgrName">Manager</div>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <div class="sec-title">MANUAL BOOKING</div>
+  <div class="sec-sub">Walk-in customer এর জন্য slot block করো</div>
+  <div class="note-box">✅ এই form দিয়ে slot block করলে website এ সেই slot automatically <strong>unavailable</strong> দেখাবে।</div>
+
+  <div class="form-row">
+    <div class="fg">
+      <label class="form-label">Turf</label>
+      <select class="form-select" id="mTurf"><option value="">— Select —</option></select>
+    </div>
+    <div class="fg">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-input" id="mDate">
+    </div>
+  </div>
+
+  <div id="slotSection" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="slot-label">Slot select করো — <span id="mDateLabel" style="color:var(--green)"></span></div>
+      <div id="selCountBadge" style="display:none;background:var(--green);color:#000;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;">0 selected</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">💡 একাধিক slot select করতে পারবে — সবগুলো একসাথে block হবে</div>
+    <div class="slot-grid" id="slotGrid"></div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label class="form-label">Customer Name</label>
+        <input type="text" class="form-input" id="mName" placeholder="নাম (optional)">
+      </div>
+      <div class="fg">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-input" id="mPhone" placeholder="01XXXXXXXXX" maxlength="11">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="form-label">Note</label>
+      <input type="text" class="form-input" id="mNote" placeholder="e.g. Cash paid (optional)">
+    </div>
+    <button class="block-btn" id="blockBtn" disabled>✓ Slot Block করো</button>
+    <div id="selectedSlotsList" style="margin-top:10px;display:none">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Selected Slots:</div>
+      <div id="selSlotsDisplay" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS SECTION -->
+  <div style="margin-top:36px" id="bookingSection">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px">
+      <div>
+        <div class="sec-title" style="font-size:22px;margin-bottom:2px">সকল Bookings</div>
+        <div class="sec-sub" style="margin-bottom:0" id="bookingSubTitle">এই turf এর সব bookings</div>
+      </div>
+      <button onclick="loadAllBookings()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font)">↻ Refresh</button>
+    </div>
+
+    <!-- STATS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px" id="bookingStats">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">মোট Bookings</div>
+        <div style="font-family:var(--font-head);font-size:28px;color:var(--green)" id="statTotalBook">—</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Advance Collected</div>
+        <div style="font-family:var(--font-head);font-size:28px;color:var(--green)" id="statAdvance">—</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Due Amount</div>
+        <div style="font-family:var(--font-head);font-size:28px;color:#f39c12" id="statDue">—</div>
+      </div>
+    </div>
+
+    <!-- FILTER -->
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <select id="filterType" class="form-select" style="flex:1;min-width:120px" onchange="applyBookingFilter()">
+        <option value="">সব ধরন</option>
+        <option value="confirmed">Online</option>
+        <option value="manual">Manual</option>
+        <option value="pending">Pending</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <input type="date" id="filterBookDate" class="form-input" style="flex:1;min-width:140px" onchange="applyBookingFilter()">
+      <button onclick="clearBookingFilter()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:var(--font)">Clear</button>
+    </div>
+
+    <!-- TABLE -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:14px;font-weight:600">Booking List</div>
+        <div style="font-size:12px;color:var(--muted)" id="bookingCountLabel"></div>
+      </div>
+      <div id="bookingTableWrap" style="overflow-x:auto">
+        <div style="color:var(--muted);font-size:13px;padding:24px;text-align:center"><span class="spinner"></span> Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase non-module script for easy access -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+// ══ Firebase Init ══
+firebase.initializeApp({
+  apiKey: "AIzaSyCOZ2fyNMrWjmn4jLSVI9iPStyQJu3SJzk",
+  authDomain: "firstbook-39156.firebaseapp.com",
+  projectId: "firstbook-39156",
+  storageBucket: "firstbook-39156.firebasestorage.app",
+  messagingSenderId: "133014620832",
+  appId: "1:133014620832:web:b09e4570731b291be0d7c5"
+});
+const db = firebase.firestore();
+
+// ══ PASSWORDS — প্রতিটা turf manager এর আলাদা password ══
+const PASSWORDS = {
+  'turf1pass': 't1',
+  'sk2026':    't2',
+  'bhuiyan99': 't3',
+  'aksc1234':  't4',
+  'kali2026':  't5',
+  'kings786':  't6',
+  'khanda55':  't7',
+};
+
+const TURFS = [
+  {id:'t1', name:'Cumilla Turf Zone',          addr:'Noapara Road, Cumilla',                               price:1200},
+  {id:'t2', name:'S.K. Sports Arena',           addr:'Jafar Khan Road, Race Course, Cumilla',               price:1500},
+  {id:'t3', name:'Bhuiyan Turf Ground',         addr:'Shatora, Cumilla',                                    price:900},
+  {id:'t4', name:'A.K Sports Complex',          addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100},
+  {id:'t5', name:'K.Ali Sports Complex',        addr:'Noapara Road, Cumilla',                               price:1000},
+  {id:'t6', name:'Cumilla Kings Arena',         addr:'Telikona, Nurpur, Cumilla',                           price:1300},
+  {id:'t7', name:'Khandakar S.A Sports Arena',  addr:'Maghigcha, Cumilla',                                  price:950},
+];
+
+const ALL_SLOTS = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let currentUser = null;
+let selSlots = []; // multiple slots
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+function updateSelDisplay() {
+  const badge = document.getElementById('selCountBadge');
+  const listWrap = document.getElementById('selectedSlotsList');
+  const display = document.getElementById('selSlotsDisplay');
+  const btn = document.getElementById('blockBtn');
+  if(selSlots.length === 0) {
+    badge.style.display = 'none';
+    listWrap.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '✓ Slot Block করো';
+  } else {
+    badge.style.display = 'inline-block';
+    badge.textContent = selSlots.length + ' selected';
+    listWrap.style.display = 'block';
+    display.innerHTML = selSlots.map(s =>
+      `<span style="background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">${s}</span>`
+    ).join('');
+    btn.disabled = false;
+    btn.textContent = '✓ ' + selSlots.length + 'টি Slot Block করো';
+  }
+}
+
+// ── LOGIN ──
+document.getElementById('loginBtn').onclick = function() {
+  const pass = document.getElementById('passInput').value.trim();
+  const turfId = PASSWORDS[pass];
+  const errEl = document.getElementById('loginErr');
+  if(!turfId) {
+    errEl.style.display = 'block';
+    document.getElementById('passInput').value = '';
+    return;
+  }
+  currentUser = TURFS.find(t => t.id === turfId);
+  errEl.style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'block';
+  initApp();
+};
+
+document.getElementById('passInput').addEventListener('keydown', function(e) {
+  if(e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+document.getElementById('logoutBtn').onclick = function() {
+  currentUser = null; selSlots = [];
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('passInput').value = '';
+  document.getElementById('slotSection').style.display = 'none';
+};
+
+// ── INIT APP ──
+function initApp() {
+  document.getElementById('mgrName').textContent = '✏️ ' + currentUser.name;
+  const sel = document.getElementById('mTurf');
+  sel.innerHTML = '<option value="">— Select —</option>';
+  TURFS.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.id; o.textContent = t.name;
+    if(t.id === currentUser.id) o.selected = true;
+    sel.appendChild(o);
+  });
+  // Default today
+  const today = new Date();
+  document.getElementById('mDate').value = today.getFullYear() + '-' +
+    String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+  sel.onchange = loadSlots;
+  document.getElementById('mDate').onchange = loadSlots;
+  document.getElementById('blockBtn').onclick = saveBooking;
+
+  loadSlots();
+  loadAllBookings();
+}
+
+// ── LOAD SLOTS ──
+function loadSlots() {
+  const turfId = document.getElementById('mTurf').value;
+  const dateVal = document.getElementById('mDate').value;
+  selSlots = [];
+  updateSelDisplay();
+  if(!turfId || !dateVal) { document.getElementById('slotSection').style.display = 'none'; return; }
+  document.getElementById('slotSection').style.display = 'block';
+  const [y,m,d] = dateVal.split('-');
+  document.getElementById('mDateLabel').textContent = parseInt(d)+' '+MONTHS[parseInt(m)-1]+' '+y;
+  const grid = document.getElementById('slotGrid');
+  grid.innerHTML = '<div class="slot-loading"><span class="spinner"></span> Loading...</div>';
+
+  db.collection('bookings')
+    .where('date','==',dateVal)
+    .where('turfId','==',turfId)
+    .get()
+    .then(snap => {
+      const booked = new Set();
+      snap.forEach(doc => { if(doc.data().status !== 'cancelled') booked.add(doc.data().timeSlot); });
+      grid.innerHTML = '';
+      const now = new Date();
+      ALL_SLOTS.forEach(s => {
+        const btn = document.createElement('div');
+        const parts = s.split(' ');
+        const [h,min] = parts[0].split(':');
+        const ampm = parts[1];
+        let hr = parseInt(h) + (ampm==='PM' && h!=='12' ? 12 : 0) - (ampm==='AM' && h==='12' ? 12 : 0);
+        const slotDt = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+        slotDt.setHours(hr, parseInt(min), 0, 0);
+        const isPast = slotDt <= now;
+        const isBooked = booked.has(s);
+        btn.className = 'slot-btn' + (isPast ? ' sp' : isBooked ? ' sb' : '');
+        btn.textContent = s;
+        if(!isPast && !isBooked) {
+          btn.onclick = () => {
+            const idx = selSlots.indexOf(s);
+            if(idx === -1) {
+              selSlots.push(s);
+              btn.classList.add('ss');
+            } else {
+              selSlots.splice(idx, 1);
+              btn.classList.remove('ss');
+            }
+            updateSelDisplay();
+          };
+        }
+        grid.appendChild(btn);
+      });
+    })
+    .catch(e => { grid.innerHTML = '<div style="color:var(--red);grid-column:1/-1;padding:12px">Error: '+e.message+'</div>'; });
+}
+
+// ── SAVE BOOKING ──
+function saveBooking() {
+  const turfId = document.getElementById('mTurf').value;
+  const dateVal = document.getElementById('mDate').value;
+  const phone = document.getElementById('mPhone').value.trim() || 'N/A';
+  const name = document.getElementById('mName').value.trim() || 'Walk-in';
+  const note = document.getElementById('mNote').value.trim() || 'Manual booking';
+  if(!turfId || !dateVal || selSlots.length === 0) { toast('Turf, date ও কমপক্ষে একটা slot select করো', 'error'); return; }
+  const turf = TURFS.find(t => t.id === turfId);
+  const btn = document.getElementById('blockBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving ' + selSlots.length + 'টি slot...';
+
+  // Save all selected slots one by one
+  let saved = 0, failed = 0;
+  const promises = selSlots.map(slot => {
+    const ref = 'MB-' + Math.floor(Math.random()*9000+1000) + '-CML';
+    return db.collection('bookings').add({
+      refCode: ref,
+      turfId: turf.id, turfName: turf.name, turfAddr: turf.addr,
+      date: dateVal, timeSlot: slot,
+      phone, customerName: name, note,
+      total: turf.price, advance: turf.price, due: 0,
+      payMethod: 'Cash', status: 'manual',
+      bookedBy: currentUser.name,
+      createdAt: firebase.firestore.Timestamp.now()
+    }).then(() => saved++)
+      .catch(() => failed++);
+  });
+
+  Promise.all(promises).then(() => {
+    if(failed === 0) {
+      toast('✅ ' + saved + 'টি slot successfully blocked!', 'success');
+    } else {
+      toast('⚠️ ' + saved + 'টি blocked, ' + failed + 'টি failed', 'error');
+    }
+    document.getElementById('mName').value = '';
+    document.getElementById('mPhone').value = '';
+    document.getElementById('mNote').value = '';
+    selSlots = [];
+    btn.textContent = '✓ Slot Block করো';
+    loadSlots();
+    loadRecent();
+  });
+}
+
+// ── ALL BOOKINGS FOR THIS TURF ──
+let allTurfBookings = [];
+
+function loadAllBookings() {
+  if(!currentUser) return;
+  const wrap = document.getElementById('bookingTableWrap');
+  wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:24px;text-align:center"><span class="spinner"></span> Loading...</div>';
+
+  db.collection('bookings')
+    .where('turfId','==', currentUser.id)
+    .get()
+    .then(snap => {
+      allTurfBookings = [];
+      snap.forEach(d => allTurfBookings.push({docId: d.id, ...d.data()}));
+      allTurfBookings.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+
+      // Update stats
+      const active = allTurfBookings.filter(b => b.status !== 'cancelled');
+      const totalAdv = active.reduce((s,b) => s + (b.advance||0), 0);
+      const totalDue = active.reduce((s,b) => s + (b.due||0), 0);
+      document.getElementById('statTotalBook').textContent = active.length;
+      document.getElementById('statAdvance').textContent = '৳' + totalAdv.toLocaleString();
+      document.getElementById('statDue').textContent = '৳' + totalDue.toLocaleString();
+      document.getElementById('bookingSubTitle').textContent = currentUser.name + ' এর সব bookings';
+
+      applyBookingFilter();
+    })
+    .catch(e => {
+      wrap.innerHTML = '<div style="color:var(--red);padding:24px;text-align:center">Error: '+e.message+'</div>';
+    });
+}
+
+function applyBookingFilter() {
+  const type = document.getElementById('filterType').value;
+  const date = document.getElementById('filterBookDate').value;
+  let filtered = allTurfBookings.filter(b => {
+    if(type && b.status !== type) return false;
+    if(date && b.date !== date) return false;
+    return true;
+  });
+  document.getElementById('bookingCountLabel').textContent = filtered.length + ' booking' + (filtered.length!==1?'s':'');
+  renderBookingTable(filtered);
+}
+
+function clearBookingFilter() {
+  document.getElementById('filterType').value = '';
+  document.getElementById('filterBookDate').value = '';
+  applyBookingFilter();
+}
+
+function renderBookingTable(bookings) {
+  const wrap = document.getElementById('bookingTableWrap');
+  if(!bookings.length) {
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:32px;text-align:center">কোনো booking নেই।</div>';
+    return;
+  }
+
+  let html = `<table style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr style="border-bottom:1px solid var(--border)">
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Ref</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Date</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Time</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Customer</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Phone</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Total</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Advance</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Due</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Type</th>
+        <th style="padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Status</th>
+      </tr>
+    </thead><tbody>`;
+
+  bookings.forEach(b => {
+    const isManual = b.status === 'manual';
+    const isCancelled = b.status === 'cancelled';
+    const isPending = b.status === 'pending';
+
+    const statusColor = isCancelled ? '#e74c3c' : isPending ? '#f39c12' : 'var(--green)';
+    const statusBg = isCancelled ? '#1a0808' : isPending ? '#1a1400' : 'var(--green-glow)';
+    const statusBorder = isCancelled ? '#5a1a1a' : isPending ? '#5a4200' : 'var(--green-dark)';
+
+    html += `<tr style="border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+      <td style="padding:13px 16px;font-family:var(--font-head);font-size:14px;color:var(--green);letter-spacing:1px;white-space:nowrap">${b.refCode||'—'}</td>
+      <td style="padding:13px 16px;font-size:13px;white-space:nowrap">${b.date||'—'}</td>
+      <td style="padding:13px 16px;font-size:13px;white-space:nowrap">${b.timeSlot||'—'}</td>
+      <td style="padding:13px 16px;font-size:13px">${b.customerName||'—'}</td>
+      <td style="padding:13px 16px;font-size:13px;color:var(--muted)">${b.phone||'—'}</td>
+      <td style="padding:13px 16px;font-size:13px;font-weight:600">৳${b.total||0}</td>
+      <td style="padding:13px 16px;font-size:13px;font-weight:700;color:var(--green)">৳${b.advance||0}</td>
+      <td style="padding:13px 16px;font-size:13px;font-weight:600;color:#f39c12">৳${b.due||0}</td>
+      <td style="padding:13px 16px">
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;background:${isManual?'#0a1a2a':'var(--green-glow)'};color:${isManual?'#3498db':'var(--green)'};border:1px solid ${isManual?'#1a4a6a':'var(--green-dark)'}">
+          ${isManual ? 'Manual' : 'Online'}
+        </span>
+      </td>
+      <td style="padding:13px 16px">
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor};border:1px solid ${statusBorder};text-transform:uppercase">
+          ${b.status||'—'}
+        </span>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// Call loadAllBookings instead of loadRecent after booking
+function loadRecent() {
+  loadAllBookings();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firstbook — Cumilla Turf Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#00E676;--green-dark:#00B85C;--green-glow:rgba(0,230,118,0.13);
+  --black:#0A0A0A;--card:#141414;--card2:#1C1C1C;--border:#2A2A2A;
+  --text:#F0F0F0;--muted:#888;
+  --font-head:'Bebas Neue',sans-serif;--font:'DM Sans',sans-serif;
+}
+body{background:var(--black);color:var(--text);font-family:var(--font);min-height:100vh}
+.app{max-width:860px;margin:0 auto;padding:0 16px 80px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
+.logo{font-family:var(--font-head);font-size:34px;letter-spacing:1px}
+.logo em{color:#ccc;font-style:normal}.logo span{color:var(--green)}
+.city-tag{background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600}
+
+/* STEPS */
+.steps{display:flex;align-items:center;padding:18px 0;border-bottom:1px solid var(--border);margin-bottom:4px}
+.step{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:500;transition:color .3s}
+.step.active{color:var(--green)}.step.done{color:var(--green-dark)}
+.step-num{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:all .3s}
+.step.done .step-num{background:var(--green-dark);border-color:var(--green-dark);color:#000}
+.step.active .step-num{background:var(--green);border-color:var(--green);color:#000}
+.step-line{flex:1;height:1px;background:var(--border);margin:0 10px;max-width:50px}
+
+/* PAGES */
+.page{display:none;padding:24px 0}.page.active{display:block}
+.sec-title{font-family:var(--font-head);font-size:24px;letter-spacing:1px;margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-family:var(--font-head);font-size:22px;letter-spacing:1px}
+.cal-nav{display:flex;gap:8px}
+.cal-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cal-btn:hover{border-color:var(--green);color:var(--green)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dn{text-align:center;font-size:11px;color:var(--muted);font-weight:600;padding:6px 0;text-transform:uppercase}
+.cal-day{text-align:center;padding:10px 4px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.cal-day:hover:not(.empty):not(.past){background:var(--green-glow);border-color:var(--green-dark);color:var(--green)}
+.cal-day.selected{background:var(--green);color:#000;font-weight:700;border-color:var(--green)}
+.cal-day.today{border-color:var(--green-dark);color:var(--green)}
+.cal-day.past{color:#333;cursor:default}.cal-day.empty{cursor:default}
+
+/* TIME */
+.time-section{margin-top:22px}
+.time-label{font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.time-slot{padding:10px 6px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;color:var(--text);position:relative}
+.time-slot:hover:not(.booked){border-color:var(--green-dark);color:var(--green)}
+.time-slot.selected{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
+.time-slot.booked{background:#180808;border-color:#2a1515;color:#444;cursor:not-allowed;font-size:12px}
+.time-slot.booked::after{content:'Booked';display:block;font-size:9px;color:#555;margin-top:2px}
+.time-slot.loading-slots{color:var(--muted);font-size:12px;grid-column:1/-1;text-align:center;padding:20px}
+
+/* BUTTONS */
+.btn-row{display:flex;justify-content:flex-end;margin-top:24px;gap:12px}
+.btn{padding:12px 28px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s;letter-spacing:.3px;border:none}
+.btn-primary{background:var(--green);color:#000}
+.btn-primary:hover{background:var(--green-dark);transform:translateY(-1px)}
+.btn-primary:disabled{background:#2a2a2a;color:#555;cursor:not-allowed;transform:none}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--green-dark);color:var(--green)}
+
+/* EDIT BANNER */
+.edit-banner{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.edit-info{font-size:14px;color:var(--text);font-weight:500}
+.edit-info span{color:var(--green);font-weight:700}
+.btn-edit{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--font);transition:all .2s}
+.btn-edit:hover{border-color:var(--green-dark);color:var(--green)}
+
+/* TURF CARDS */
+.turf-list{display:flex;flex-direction:column;gap:12px}
+.turf-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.turf-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green);opacity:0;transition:opacity .2s}
+.turf-card:hover,.turf-card.selected{border-color:var(--green-dark);background:#0d1a0d}
+.turf-card.selected::before{opacity:1}
+.turf-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.turf-name{font-family:var(--font-head);font-size:21px;letter-spacing:.5px;line-height:1.2;padding-right:28px}
+.turf-addr{font-size:12px;color:var(--muted);margin-top:4px}
+.price-main{font-family:var(--font-head);font-size:24px;color:var(--green);letter-spacing:.5px;text-align:right}
+.price-sub{font-size:11px;color:var(--muted);white-space:nowrap;text-align:right}
+.turf-tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+.tag.green{background:var(--green-glow);color:var(--green);border-color:var(--green-dark)}
+.avail-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:middle}
+.radio-circle{position:absolute;top:18px;right:18px;width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.turf-card.selected .radio-circle{border-color:var(--green);background:var(--green)}
+.radio-circle::after{content:'';width:8px;height:8px;border-radius:50%;background:#000;opacity:0;transition:opacity .2s}
+.turf-card.selected .radio-circle::after{opacity:1}
+
+/* SUMMARY */
+.summary-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;margin-top:8px}
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.sum-row:last-child{border-bottom:none}
+.sum-row .lbl{color:var(--muted)}.sum-row .val{font-weight:600;color:var(--text)}
+.sum-row.total .lbl{font-weight:700;color:var(--text);font-size:16px}
+.sum-row.total .val{font-family:var(--font-head);font-size:26px;color:var(--green);letter-spacing:.5px}
+.sum-row.adv .val{color:var(--green)}
+.pay-note{background:var(--green-glow);border:1px solid var(--green-dark);border-radius:10px;padding:12px 16px;margin-top:16px;font-size:13px;color:var(--green);line-height:1.6}
+
+/* PAYMENT METHODS */
+.pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.pay-opt{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
+.pay-opt.selected{border-color:var(--green-dark)}
+.pay-opt .pay-icon{font-size:20px;margin-bottom:4px}
+.pay-opt .pay-name{font-size:13px;font-weight:600;color:var(--muted);transition:color .2s}
+.pay-opt.selected .pay-name{color:var(--green)}
+
+/* PHONE INPUT */
+.phone-wrap{margin-top:20px}
+.phone-label{font-size:13px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.phone-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;transition:border-color .2s}
+.phone-input:focus{border-color:var(--green-dark)}
+.phone-input::placeholder{color:#444}
+
+/* SUCCESS */
+.success-wrap{text-align:center;padding:40px 0}
+.success-icon{width:80px;height:80px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px;color:#000;font-weight:700}
+.success-title{font-family:var(--font-head);font-size:40px;letter-spacing:1px;color:var(--green);margin-bottom:8px}
+.success-sub{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:24px}
+.booking-ref{background:var(--card);border:1px solid var(--green-dark);border-radius:12px;padding:18px 28px;display:inline-block;margin-bottom:24px}
+.ref-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.ref-code{font-family:var(--font-head);font-size:32px;color:var(--green);letter-spacing:4px}
+.booking-detail{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:0 auto 20px;max-width:420px;text-align:left;font-size:14px}
+.booking-detail div{padding:5px 0;color:var(--muted)}.booking-detail span{color:var(--text);font-weight:600}
+
+/* LOADING SPINNER */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{color:var(--muted);font-size:14px;padding:20px 0;text-align:center}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.error{border-color:#c0392b;color:#e74c3c}
+.toast.success{border-color:var(--green-dark);color:var(--green)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><em>First</em><span>book</span></div>
+    <div class="city-tag">📍 Cumilla</div>
+  </header>
+
+  <div class="steps">
+    <div class="step active" id="s1"><div class="step-num">1</div>Date &amp; Time</div>
+    <div class="step-line"></div>
+    <div class="step" id="s2"><div class="step-num">2</div>Choose Turf</div>
+    <div class="step-line"></div>
+    <div class="step" id="s3"><div class="step-num">3</div>Payment</div>
+  </div>
+
+  <!-- PAGE 1: DATE & TIME -->
+  <div class="page active" id="page1">
+    <div class="sec-title">SELECT DATE &amp; TIME</div>
+    <div class="sec-sub">Choose your preferred playing slot in Cumilla</div>
+
+    <div class="cal-header">
+      <div class="cal-month" id="calMonthLabel"></div>
+      <div class="cal-nav">
+        <button class="cal-btn" onclick="changeMonth(-1)">&#8249;</button>
+        <button class="cal-btn" onclick="changeMonth(1)">&#8250;</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+
+    <div class="time-section" id="timeSection" style="display:none">
+      <div class="time-label">Available slots — <span id="selDateLbl" style="color:var(--green)"></span></div>
+      <div class="time-grid" id="timeGrid"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn1" disabled onclick="goStep2()">View Available Turfs →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: TURF LIST -->
+  <div class="page" id="page2">
+    <div class="edit-banner">
+      <div class="edit-info">📅 <span id="eb2date"></span> &nbsp;·&nbsp; ⏰ <span id="eb2time"></span></div>
+      <button class="btn-edit" onclick="goStep1()">✏ Edit</button>
+    </div>
+    <div class="sec-title">AVAILABLE TURFS</div>
+    <div class="sec-sub" id="turfCount">Loading turfs...</div>
+    <div class="turf-list" id="turfList"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep1()">← Back</button>
+      <button class="btn btn-primary" id="btn2" disabled onclick="goStep3()">Proceed to Payment →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 3: PAYMENT -->
+  <div class="page" id="page3">
+    <div class="edit-banner">
+      <div class="edit-info">📅 <span id="eb3date"></span> &nbsp;·&nbsp; ⏰ <span id="eb3time"></span> &nbsp;·&nbsp; <span id="eb3turf"></span></div>
+      <button class="btn-edit" onclick="goStep1()">✏ Edit</button>
+    </div>
+    <div class="sec-title">BOOKING SUMMARY</div>
+    <div class="sec-sub">Confirm your details and pay 30% to secure the slot</div>
+
+    <div class="summary-card">
+      <div class="sum-row"><span class="lbl">Turf</span><span class="val" id="sTurf"></span></div>
+      <div class="sum-row"><span class="lbl">Address</span><span class="val" id="sAddr" style="font-size:12px;color:var(--muted)"></span></div>
+      <div class="sum-row"><span class="lbl">Date</span><span class="val" id="sDate"></span></div>
+      <div class="sum-row"><span class="lbl">Time slot</span><span class="val" id="sTime"></span></div>
+      <div class="sum-row"><span class="lbl">Duration</span><span class="val">1 Hour</span></div>
+      <div class="sum-row"><span class="lbl">Rate</span><span class="val" id="sRate"></span></div>
+      <div class="sum-row total"><span class="lbl">Total</span><span class="val" id="sTotal"></span></div>
+      <div class="sum-row adv"><span class="lbl">Advance (30%)</span><span class="val" id="sAdv"></span></div>
+      <div class="sum-row"><span class="lbl">Due on arrival</span><span class="val" id="sDue"></span></div>
+    </div>
+
+    <div class="pay-note">✅ Pay <strong id="payAmt"></strong> now to confirm. Remaining payable at the turf.</div>
+
+    <div style="margin-top:20px">
+      <div class="time-label">Payment method</div>
+      <div class="pay-grid">
+        <div class="pay-opt selected" id="pm-bKash" onclick="selPay('bKash')"><div class="pay-icon">💳</div><div class="pay-name">bKash</div></div>
+        <div class="pay-opt" id="pm-Nagad" onclick="selPay('Nagad')"><div class="pay-icon">📱</div><div class="pay-name">Nagad</div></div>
+        <div class="pay-opt" id="pm-Card" onclick="selPay('Card')"><div class="pay-icon">🏦</div><div class="pay-name">Card</div></div>
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone-label">Your phone number</div>
+      <input type="tel" class="phone-input" id="phoneInput" placeholder="01XXXXXXXXX" maxlength="11">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep2()">← Back</button>
+      <button class="btn btn-primary" id="btn3" onclick="confirmBooking()">Book Now — Pay 30% →</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS PAGE -->
+  <div class="page" id="pageSuccess">
+    <div class="success-wrap">
+      <div class="success-icon">✓</div>
+      <div class="success-title">BOOKING CONFIRMED!</div>
+      <div class="success-sub" id="successSub"></div>
+      <div class="booking-ref">
+        <div class="ref-lbl">Booking Reference</div>
+        <div class="ref-code" id="refCode"></div>
+      </div>
+      <div class="booking-detail" id="bookingDetail"></div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:28px">Confirmation sent to your phone number.</div>
+      <button class="btn btn-primary" onclick="resetAll()">Book Another Slot</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOZ2fyNMrWjmn4jLSVI9iPStyQJu3SJzk",
+  authDomain: "firstbook-39156.firebaseapp.com",
+  projectId: "firstbook-39156",
+  storageBucket: "firstbook-39156.firebasestorage.app",
+  messagingSenderId: "133014620832",
+  appId: "1:133014620832:web:b09e4570731b291be0d7c5",
+  measurementId: "G-JHNMD9J7K0"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// Loaded live from Firebase turfs collection
+let TURFS = [];
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const ALL_SLOTS = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM'];
+
+let curYear = 2026, curMonth = 4;
+let selDate = null, selTime = null, selTurf = null, payMethod = 'bKash';
+let bookedMap = {}; // turfId -> [slots]
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(()=>{ t.className='toast'; }, 3000);
+}
+
+function renderCal() {
+  document.getElementById('calMonthLabel').textContent = MONTHS[curMonth] + ' ' + curYear;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  DAYS.forEach(d => { const e=document.createElement('div'); e.className='cal-dn'; e.textContent=d; grid.appendChild(e); });
+  const first = new Date(curYear, curMonth, 1).getDay();
+  const days = new Date(curYear, curMonth+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i=0;i<first;i++){const e=document.createElement('div');e.className='cal-day empty';grid.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const e=document.createElement('div');
+    const dt=new Date(curYear,curMonth,d); dt.setHours(0,0,0,0);
+    const isPast=dt<today, isToday=dt.getTime()===today.getTime();
+    const isSel=selDate&&selDate.getTime()===dt.getTime();
+    e.className='cal-day'+(isPast?' past':'')+(isToday&&!isSel?' today':'')+(isSel?' selected':'');
+    e.textContent=d;
+    if(!isPast) e.onclick=()=>selectDate(dt);
+    grid.appendChild(e);
+  }
+}
+
+async function selectDate(dt) {
+  selDate=dt; selTime=null;
+  document.getElementById('btn1').disabled=true;
+  renderCal();
+  document.getElementById('timeSection').style.display='block';
+  const lbl=dt.getDate()+' '+MONTHS[dt.getMonth()]+' '+dt.getFullYear();
+  document.getElementById('selDateLbl').textContent=lbl;
+  // Load bookings for this date from Firestore
+  document.getElementById('timeGrid').innerHTML='<div class="time-slot loading-slots"><span class="spinner"></span> Loading slots...</div>';
+  try {
+    const dateStr = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    const q = query(collection(db,'bookings'), where('date','==',dateStr));
+    const snap = await getDocs(q);
+    bookedMap = {};
+    snap.forEach(doc => {
+      const data = doc.data();
+      if(data.status==='cancelled') return;
+      if(!bookedMap[data.turfId]) bookedMap[data.turfId]=[];
+      bookedMap[data.turfId].push(data.timeSlot);
+    });
+    renderTimeSlots();
+  } catch(e) {
+    showToast('Error loading slots. Check internet.', 'error');
+    renderTimeSlots();
+  }
+}
+
+function renderTimeSlots() {
+  const grid = document.getElementById('timeGrid');
+  grid.innerHTML='';
+  const now = new Date();
+  ALL_SLOTS.forEach(s => {
+    const e = document.createElement('div');
+    const [h,rest]=s.split(':'); const min=rest.split(' ')[0]; const ampm=rest.split(' ')[1];
+    let hr=parseInt(h)+(ampm==='PM'&&h!=='12'?12:0)-(ampm==='AM'&&h==='12'?12:0);
+    const slotDt=new Date(selDate); slotDt.setHours(hr,parseInt(min),0,0);
+    const isPast=slotDt<=now;
+    const allBooked = TURFS.length > 0 && TURFS.every(t=>(bookedMap[t.id]||[]).includes(s));
+    const isSel=selTime===s;
+    e.className='time-slot'+(isPast||allBooked?' booked':'')+(isSel?' selected':'');
+    e.textContent=s;
+    if(!isPast&&!allBooked) e.onclick=()=>selectTime(s);
+    grid.appendChild(e);
+  });
+}
+
+function selectTime(t) {
+  selTime=t;
+  document.getElementById('btn1').disabled=false;
+  renderTimeSlots();
+}
+
+window.changeMonth = function(dir) {
+  curMonth+=dir;
+  if(curMonth>11){curMonth=0;curYear++;}
+  if(curMonth<0){curMonth=11;curYear--;}
+  renderCal();
+};
+
+function dateLabel() {
+  return selDate.getDate()+' '+MONTHS[selDate.getMonth()]+' '+selDate.getFullYear();
+}
+
+window.goStep1 = function() {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page1').classList.add('active');
+  setStepState(1);
+};
+
+window.goStep2 = function() {
+  if(!selDate||!selTime)return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page2').classList.add('active');
+  document.getElementById('eb2date').textContent=dateLabel();
+  document.getElementById('eb2time').textContent=selTime;
+  setStepState(2);
+  renderTurfs();
+};
+
+async function renderTurfs() {
+  const list = document.getElementById('turfList');
+  list.innerHTML='<div class="loading-msg"><span class="spinner"></span> Checking availability...</div>';
+
+  // Use default turfs if not loaded yet
+  if(TURFS.length === 0) {
+    TURFS = DEFAULT_TURFS;
+    console.log('Using default turfs');
+  }
+
+  const dateStr = selDate.getFullYear()+'-'+String(selDate.getMonth()+1).padStart(2,'0')+'-'+String(selDate.getDate()).padStart(2,'0');
+  try {
+    const q = query(collection(db,'bookings'), where('date','==',dateStr), where('timeSlot','==',selTime));
+    const snap = await getDocs(q);
+    const bookedTurfs = new Set();
+    snap.forEach(doc=>{ const d=doc.data(); if(d.status!=='cancelled') bookedTurfs.add(d.turfId); });
+    const available = TURFS.filter(t=>!bookedTurfs.has(t.id));
+    document.getElementById('turfCount').textContent = available.length + ' turf' + (available.length!==1?'s':'') + ' available in Cumilla';
+    list.innerHTML='';
+    if(available.length===0){
+      list.innerHTML='<div class="loading-msg" style="color:#e74c3c">No turfs available for this slot. Please choose another time.</div>';
+      return;
+    }
+    available.forEach(t => {
+      const isSel = selTurf&&selTurf.id===t.id;
+      const el = document.createElement('div');
+      el.className='turf-card'+(isSel?' selected':'');
+      el.innerHTML=`<div class="radio-circle"></div>
+        <div class="turf-header">
+          <div>
+            <div class="turf-name">${t.name}</div>
+            <div class="turf-addr">📍 ${t.addr}</div>
+          </div>
+          <div>
+            <div class="price-main">৳${t.price}</div>
+            <div class="price-sub">per hour</div>
+          </div>
+        </div>
+        <div class="turf-tags">
+          <div class="tag green"><span class="avail-dot"></span>Available</div>
+          ${t.tags.map(tg=>`<div class="tag">${tg}</div>`).join('')}
+        </div>`;
+      el.onclick=()=>{ selTurf=t; document.getElementById('btn2').disabled=false; renderTurfs(); };
+      list.appendChild(el);
+    });
+  } catch(e){
+    list.innerHTML='<div class="loading-msg" style="color:#e74c3c">Error loading turfs. Please check your connection.</div>';
+  }
+}
+
+window.goStep3 = function() {
+  if(!selTurf)return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page3').classList.add('active');
+  document.getElementById('eb3date').textContent=dateLabel();
+  document.getElementById('eb3time').textContent=selTime;
+  document.getElementById('eb3turf').textContent=selTurf.name;
+  setStepState(3);
+  const total=selTurf.price;
+  const adv=Math.round(total*0.3);
+  document.getElementById('sTurf').textContent=selTurf.name;
+  document.getElementById('sAddr').textContent=selTurf.addr;
+  document.getElementById('sDate').textContent=dateLabel();
+  document.getElementById('sTime').textContent=selTime+' – '+nextHour(selTime);
+  document.getElementById('sRate').textContent='৳'+total+'/hr';
+  document.getElementById('sTotal').textContent='৳'+total;
+  document.getElementById('sAdv').textContent='৳'+adv;
+  document.getElementById('sDue').textContent='৳'+(total-adv);
+  document.getElementById('payAmt').textContent='৳'+adv;
+};
+
+window.selPay = function(m) {
+  payMethod=m;
+  document.querySelectorAll('.pay-opt').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('pm-'+m).classList.add('selected');
+};
+
+window.confirmBooking = async function() {
+  const phone = document.getElementById('phoneInput').value.trim();
+  if(!phone||phone.length<11){ showToast('Please enter a valid phone number','error'); return; }
+  const btn=document.getElementById('btn3');
+  btn.disabled=true; btn.textContent='Processing...';
+  try {
+    const dateStr=selDate.getFullYear()+'-'+String(selDate.getMonth()+1).padStart(2,'0')+'-'+String(selDate.getDate()).padStart(2,'0');
+    // Check conflict
+    const q=query(collection(db,'bookings'),where('date','==',dateStr),where('timeSlot','==',selTime),where('turfId','==',selTurf.id));
+    const existing=await getDocs(q);
+    const alreadyBooked = !existing.empty && existing.docs.some(d=>d.data().status!=='cancelled');
+    if(alreadyBooked){ showToast('This slot was just booked! Please choose another.','error'); btn.disabled=false; btn.textContent='Book Now — Pay 30% →'; return; }
+
+    const total=selTurf.price;
+    const adv=Math.round(total*0.3);
+    const ref='FB-'+Math.floor(Math.random()*9000+1000)+'-CML';
+
+    // Save booking as 'pending' first
+    await addDoc(collection(db,'bookings'),{
+      refCode:ref, turfId:selTurf.id, turfName:selTurf.name, turfAddr:selTurf.addr,
+      date:dateStr, timeSlot:selTime, phone:phone,
+      payMethod:payMethod, total:total, advance:adv, due:total-adv,
+      status:'pending', paymentStatus:'pending',
+      createdAt:Timestamp.now()
+    });
+
+    // Call Netlify function to get SSLCommerz payment URL
+    btn.textContent='Redirecting to payment...';
+    const res = await fetch('/.netlify/functions/initiate-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        turfName: selTurf.name,
+        turfAddr: selTurf.addr,
+        turfId: selTurf.id,
+        date: dateStr,
+        timeSlot: selTime,
+        phone: phone,
+        advance: adv,
+        total: total,
+        refCode: ref,
+      })
+    });
+
+    const data = await res.json();
+    if(data.url) {
+      // Redirect to SSLCommerz payment page
+      window.location.href = data.url;
+    } else {
+      showToast('Payment error: ' + (data.error || 'Unknown error'), 'error');
+      btn.disabled=false; btn.textContent='Book Now — Pay 30% →';
+    }
+  } catch(e){
+    showToast('Booking failed: '+e.message,'error');
+    btn.disabled=false; btn.textContent='Book Now — Pay 30% →';
+  }
+};
+
+window.resetAll = function() {
+  selDate=null; selTime=null; selTurf=null; payMethod='bKash'; bookedMap={};
+  document.getElementById('btn1').disabled=true;
+  document.getElementById('btn2').disabled=true;
+  document.getElementById('timeSection').style.display='none';
+  document.getElementById('phoneInput').value='';
+  document.querySelectorAll('.pay-opt').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('pm-bKash').classList.add('selected');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page1').classList.add('active');
+  setStepState(1);
+  renderCal();
+};
+
+function setStepState(active) {
+  [1,2,3].forEach(n => {
+    const el=document.getElementById('s'+n);
+    el.className='step'+(n<active?' done':n===active?' active':'');
+  });
+}
+
+function nextHour(t) {
+  const parts=t.split(' '); const ampm=parts[1];
+  const [h,m]=parts[0].split(':');
+  let hr=parseInt(h)+1; let na=ampm;
+  if(hr===12) na='PM';
+  if(hr>12){hr=hr-12;na='PM';}
+  if(parseInt(h)===11&&ampm==='AM') na='PM';
+  if(parseInt(h)===11&&ampm==='PM') na='PM';
+  return hr+':'+m+' '+na;
+}
+
+// Turf data — edit prices here directly
+const DEFAULT_TURFS = [
+  {id:'t1', name:'Cumilla Turf Zone', addr:'Noapara Road, Cumilla', price:1200, tags:['Floodlit','Parking','Changing Room']},
+  {id:'t2', name:'S.K. Sports Arena', addr:'Jafar Khan Road, Race Course, Cumilla', price:1500, tags:['Premium','Floodlit','Cafeteria']},
+  {id:'t3', name:'Bhuiyan Turf Ground', addr:'Shatora, Cumilla', price:900, tags:['Outdoor','Affordable']},
+  {id:'t4', name:'A.K Sports Complex', addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100, tags:['Floodlit','Changing Room']},
+  {id:'t5', name:'K.Ali Sports Complex', addr:'Noapara Road, Cumilla', price:1000, tags:['Indoor','AC Changing Room']},
+  {id:'t6', name:'Cumilla Kings Arena', addr:'Telikona, Nurpur, Cumilla', price:1300, tags:['Premium','Parking','Floodlit']},
+  {id:'t7', name:'Khandakar S.A Sports Arena', addr:'Maghigcha, Cumilla', price:950, tags:['Affordable','Floodlit']},
+];
+
+// Load turfs from Firebase on startup
+async function loadTurfsAndInit() {
+  // Load prices from Firebase 'prices' collection first
+  try {
+    const pSnap = await getDocs(collection(db, 'prices'));
+    pSnap.forEach(d => {
+      const t = DEFAULT_TURFS.find(x => x.id === d.id);
+      if(t) t.price = d.data().price;
+    });
+  } catch(e) { console.log('No prices collection yet, using defaults'); }
+
+  try {
+    const snap = await getDocs(collection(db, 'turf'));
+    const fbTurfs = [];
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      if(d.active !== false && d.name && d.addr && d.price) {
+        fbTurfs.push({
+          id: docSnap.id,
+          name: d.name,
+          addr: d.addr || d.adress || '',
+          price: d.price || 0,
+          tags: d.tags || []
+        });
+      }
+    });
+    // Use Firebase data if 3+ valid turfs found, else use default
+    TURFS = fbTurfs.length >= 3 ? fbTurfs : DEFAULT_TURFS;
+    TURFS.sort((a,b) => a.price - b.price);
+    console.log('Turfs ready:', TURFS.length);
+  } catch(e) {
+    console.error('Firebase error, using default turfs:', e);
+    TURFS = DEFAULT_TURFS;
+  }
+  renderCal();
+}
+
+loadTurfsAndInit();
+</script>
+</body>
+</html>

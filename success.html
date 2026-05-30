@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Successful — Firstbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--green:#00E676;--green-dark:#00B85C;--green-glow:rgba(0,230,118,0.12);--black:#0A0A0A;--card:#141414;--border:#2A2A2A;--text:#F0F0F0;--muted:#777;--font-head:'Bebas Neue',sans-serif;--font:'DM Sans',sans-serif}
+body{background:var(--black);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.wrap{text-align:center;max-width:420px;width:100%}
+.icon{width:88px;height:88px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:40px;color:#000;font-weight:700;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.title{font-family:var(--font-head);font-size:42px;letter-spacing:1px;color:var(--green);margin-bottom:8px}
+.sub{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:24px}
+.ref-box{background:var(--card);border:1px solid var(--green-dark);border-radius:12px;padding:20px 28px;margin-bottom:24px;display:inline-block}
+.ref-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.ref-code{font-family:var(--font-head);font-size:30px;color:var(--green);letter-spacing:3px}
+.detail-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 24px;margin-bottom:24px;text-align:left}
+.drow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+.drow:last-child{border-bottom:none}
+.drow .dl{color:var(--muted)}.drow .dv{font-weight:600}
+.btn{display:inline-block;background:var(--green);color:#000;border:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .2s}
+.btn:hover{background:var(--green-dark)}
+.note{margin-top:16px;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="icon">✓</div>
+  <div class="title">PAYMENT SUCCESSFUL!</div>
+  <div class="sub">তোমার booking confirmed হয়েছে। Turf এ গিয়ে বাকি টাকা পরিশোধ করো।</div>
+
+  <div class="ref-box">
+    <div class="ref-label">Booking Reference</div>
+    <div class="ref-code" id="refCode">Loading...</div>
+  </div>
+
+  <div class="detail-box" id="detailBox" style="display:none">
+    <div class="drow"><span class="dl">Turf</span><span class="dv" id="dTurf"></span></div>
+    <div class="drow"><span class="dl">Date</span><span class="dv" id="dDate"></span></div>
+    <div class="drow"><span class="dl">Time</span><span class="dv" id="dTime"></span></div>
+    <div class="drow"><span class="dl">Advance Paid</span><span class="dv" id="dAdv" style="color:var(--green)"></span></div>
+    <div class="drow"><span class="dl">Due at Turf</span><span class="dv" id="dDue"></span></div>
+  </div>
+
+  <a href="index.html" class="btn">Book Another Slot</a>
+  <div class="note">এই page টা screenshot নিয়ে রাখো।</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCOZ2fyNMrWjmn4jLSVI9iPStyQJu3SJzk",
+  authDomain: "firstbook-39156.firebaseapp.com",
+  projectId: "firstbook-39156",
+  storageBucket: "firstbook-39156.firebasestorage.app",
+  messagingSenderId: "133014620832",
+  appId: "1:133014620832:web:b09e4570731b291be0d7c5"
+});
+const db = firebase.firestore();
+
+const params = new URLSearchParams(window.location.search);
+const ref = params.get('ref');
+
+if(ref) {
+  document.getElementById('refCode').textContent = ref;
+  // Load booking details from Firebase
+  db.collection('bookings').where('refCode','==',ref).get().then(snap => {
+    if(!snap.empty) {
+      const b = snap.docs[0].data();
+      document.getElementById('dTurf').textContent = b.turfName || '—';
+      document.getElementById('dDate').textContent = b.date || '—';
+      document.getElementById('dTime').textContent = b.timeSlot || '—';
+      document.getElementById('dAdv').textContent = '৳' + (b.advance || 0);
+      document.getElementById('dDue').textContent = '৳' + (b.due || 0);
+      document.getElementById('detailBox').style.display = 'block';
+      // Update status to paid
+      snap.docs[0].ref.update({ status: 'confirmed', paymentStatus: 'paid' });
+    }
+  });
+} else {
+  document.getElementById('refCode').textContent = 'N/A';
+}
+</script>
+</body>
+</html>

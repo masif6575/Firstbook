@@ -1,0 +1,550 @@
+cat > /mnt/user-data/outputs/firstbook/admin.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firstbook — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#00E676;--green-dark:#00B85C;--green-glow:rgba(0,230,118,0.1);
+  --black:#0A0A0A;--card:#141414;--card2:#1C1C1C;--border:#2A2A2A;
+  --text:#F0F0F0;--muted:#777;--red:#e74c3c;--red-bg:#1a0808;
+  --font-head:'Bebas Neue',sans-serif;--font:'DM Sans',sans-serif;
+}
+body{background:var(--black);color:var(--text);font-family:var(--font);min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:10;display:flex;flex-direction:column}
+.main{margin-left:220px;flex:1;padding:28px 32px;max-width:calc(100vw - 220px)}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+.sb-logo .logo{font-family:var(--font-head);font-size:28px;letter-spacing:1px}
+.sb-logo .logo em{color:#ccc;font-style:normal}.sb-logo .logo span{color:var(--green)}
+.sb-logo .admin-badge{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+.sb-nav{padding:12px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green-glow)}
+.nav-icon{font-size:18px;width:20px;text-align:center}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.sb-footer a{font-size:12px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
+.sb-footer a:hover{color:var(--green)}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-title{font-family:var(--font-head);font-size:28px;letter-spacing:1px}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.stat-value{font-family:var(--font-head);font-size:32px;letter-spacing:.5px;color:var(--text)}
+.stat-value.green{color:var(--green)}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filter-input{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .2s}
+.filter-input:focus{border-color:var(--green-dark)}
+.filter-select{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;cursor:pointer}
+.filter-select option{background:#1c1c1c}
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s;border:none;letter-spacing:.3px}
+.btn-green{background:var(--green);color:#000}
+.btn-green:hover{background:var(--green-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--green-dark);color:var(--green)}
+.btn-red{background:transparent;border:1px solid #c0392b;color:var(--red);font-size:12px;padding:5px 12px}
+.btn-red:hover{background:var(--red-bg)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-blue{background:transparent;border:1px solid #2980b9;color:#3498db;font-size:12px;padding:5px 12px}
+.btn-blue:hover{background:#0a1a2a}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.table-head-title{font-size:14px;font-weight:600}
+.table-count{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:11px 16px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
+.td-muted{color:var(--muted);font-size:12px}
+.ref-code{font-family:var(--font-head);font-size:15px;color:var(--green);letter-spacing:1px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.badge-confirmed{background:var(--green-glow);color:var(--green);border:1px solid var(--green-dark)}
+.badge-cancelled{background:var(--red-bg);color:var(--red);border:1px solid #5a1a1a}
+.badge-manual{background:#0a1a2a;color:#3498db;border:1px solid #1a4a6a}
+.turf-mgmt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.turf-mgmt-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.turf-mgmt-name{font-family:var(--font-head);font-size:18px;letter-spacing:.5px;line-height:1.2}
+.turf-mgmt-addr{font-size:12px;color:var(--muted);margin-top:3px}
+.turf-price-edit{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.price-edit-input{background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--green);font-size:16px;font-family:var(--font-head);width:100px;outline:none;letter-spacing:.5px}
+.price-edit-input:focus{border-color:var(--green-dark)}
+.toggle-wrap{display:flex;align-items:center;gap:8px}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:#333;border-radius:20px;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#666;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--green-dark)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px);background:#000}
+.toggle-label{font-size:12px;color:var(--muted)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;width:460px;max-width:92vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:var(--font-head);font-size:22px;letter-spacing:.5px;margin-bottom:20px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--green-dark)}
+.form-select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;cursor:pointer}
+.form-select option{background:#1c1c1c}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.tab-page{display:none}.tab-page.active{display:block}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:all .3s;transform:translateY(8px)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:var(--green-dark);color:var(--green)}
+.toast.error{border-color:#c0392b;color:var(--red)}
+.detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-row .dl{color:var(--muted)}.detail-row .dv{font-weight:600}
+/* MANUAL BOOKING SLOTS */
+.slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.slot-btn{padding:8px 4px;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text);transition:all .2s}
+.slot-btn:hover:not(.slot-booked){border-color:var(--green-dark);color:var(--green)}
+.slot-btn.slot-selected{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
+.slot-btn.slot-booked{background:#180808;border-color:#2a1515;color:#444;cursor:not-allowed;font-size:11px}
+.manual-note{background:#0a1a0a;border:1px solid var(--green-dark);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green);margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="logo"><em>First</em><span>book</span></div>
+      <div class="admin-badge">Admin Panel</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="nav-item active" onclick="showTab('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showTab('bookings',this)"><span class="nav-icon">📋</span> All Bookings</div>
+      <div class="nav-item" onclick="showTab('manual',this)"><span class="nav-icon">✏️</span> Manual Booking</div>
+      <div class="nav-item" onclick="showTab('turfs',this)"><span class="nav-icon">🏟️</span> Manage Turfs</div>
+    </nav>
+    <div class="sb-footer">
+      <a href="index.html" target="_blank">🌐 Open Booking Site</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="tab-page active" id="tab-dashboard">
+      <div class="page-header">
+        <div><div class="page-title">DASHBOARD</div><div class="page-sub" id="dashDate"></div></div>
+        <button class="btn btn-outline" onclick="loadAll()">↻ Refresh</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Bookings</div><div class="stat-value green" id="statTotal">—</div><div class="stat-sub">All time</div></div>
+        <div class="stat-card"><div class="stat-label">Today's Bookings</div><div class="stat-value" id="statToday">—</div><div class="stat-sub" id="statTodayDate"></div></div>
+        <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value green" id="statRevenue">—</div><div class="stat-sub">Advance collected</div></div>
+        <div class="stat-card"><div class="stat-label">Active Turfs</div><div class="stat-value" id="statTurfs">—</div><div class="stat-sub">In Cumilla</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><div class="table-head-title">Recent Bookings</div><div class="table-count" id="recentCount"></div></div>
+        <div id="recentTable"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ALL BOOKINGS -->
+    <div class="tab-page" id="tab-bookings">
+      <div class="page-header">
+        <div><div class="page-title">ALL BOOKINGS</div><div class="page-sub">View, filter and manage all bookings</div></div>
+        <button class="btn btn-outline" onclick="loadBookings()">↻ Refresh</button>
+      </div>
+      <div class="filters">
+        <input type="date" class="filter-input" id="filterDate" onchange="applyFilter()">
+        <select class="filter-select" id="filterTurf" onchange="applyFilter()"><option value="">All Turfs</option></select>
+        <select class="filter-select" id="filterStatus" onchange="applyFilter()">
+          <option value="">All Status</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="manual">Manual</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="clearFilter()">Clear</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><div class="table-head-title">Bookings</div><div class="table-count" id="bookingCount">Loading...</div></div>
+        <div id="bookingsTable"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- MANUAL BOOKING -->
+    <div class="tab-page" id="tab-manual">
+      <div class="page-header">
+        <div><div class="page-title">MANUAL BOOKING</div><div class="page-sub">Turf manager manually block a slot for walk-in customers</div></div>
+      </div>
+      <div class="manual-note">✏️ এই page টা turf manager দের জন্য। কেউ সরাসরি এসে book করলে এখানে manually slot block করো — website এ automatically সেই slot unavailable দেখাবে।</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div class="form-group">
+          <label class="form-label">Turf Select করো</label>
+          <select class="form-select" id="manualTurf" onchange="loadManualSlots()">
+            <option value="">— Select Turf —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date Select করো</label>
+          <input type="date" class="form-input" id="manualDate" onchange="loadManualSlots()">
+        </div>
+      </div>
+
+      <div id="manualSlotsWrap" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Available Slots — <span id="manualDateLabel" style="color:var(--green)"></span></label>
+          <div class="slot-grid" id="manualSlotGrid"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+          <div class="form-group">
+            <label class="form-label">Customer Name (optional)</label>
+            <input type="text" class="form-input" id="manualName" placeholder="Customer er naam">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" class="form-input" id="manualPhone" placeholder="01XXXXXXXXX">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Note (optional)</label>
+          <input type="text" class="form-input" id="manualNote" placeholder="e.g. Walk-in customer, paid cash">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <button class="btn btn-green" id="manualBookBtn" onclick="saveManualBooking()" disabled>✓ Block This Slot</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANAGE TURFS -->
+    <div class="tab-page" id="tab-turfs">
+      <div class="page-header">
+        <div><div class="page-title">MANAGE TURFS</div><div class="page-sub">Edit price, toggle availability</div></div>
+      </div>
+      <div class="turf-mgmt-grid" id="turfMgmtGrid">
+        <div class="empty-state"><span class="spinner"></span> Loading...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOOKING DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-title">BOOKING DETAILS</div>
+    <div id="detailContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-red" id="cancelBtn" onclick="cancelBooking()">Cancel Booking</button>
+      <button class="btn btn-outline" onclick="closeModal('detailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOZ2fyNMrWjmn4jLSVI9iPStyQJu3SJzk",
+  authDomain: "firstbook-39156.firebaseapp.com",
+  projectId: "firstbook-39156",
+  storageBucket: "firstbook-39156.firebasestorage.app",
+  messagingSenderId: "133014620832",
+  appId: "1:133014620832:web:b09e4570731b291be0d7c5"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// Turf data — same as booking site
+const TURFS = [
+  {id:'t1', name:'Cumilla Turf Zone', addr:'Noapara Road, Cumilla', price:1200},
+  {id:'t2', name:'S.K. Sports Arena', addr:'Jafar Khan Road, Race Course, Cumilla', price:1500},
+  {id:'t3', name:'Bhuiyan Turf Ground', addr:'Shatora, Cumilla', price:900},
+  {id:'t4', name:'A.K Sports Complex', addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100},
+  {id:'t5', name:'K.Ali Sports Complex', addr:'Noapara Road, Cumilla', price:1000},
+  {id:'t6', name:'Cumilla Kings Arena', addr:'Telikona, Nurpur, Cumilla', price:1300},
+  {id:'t7', name:'Khandakar S.A Sports Arena', addr:'Maghigcha, Cumilla', price:950},
+];
+
+const ALL_SLOTS = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let allBookings = [], filteredBookings = [], currentBookingId = null;
+let manualSelSlot = null;
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(()=>t.className='toast', 3000);
+}
+
+window.showTab = function(tab, el) {
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  el.classList.add('active');
+  if(tab==='bookings') loadBookings();
+  if(tab==='turfs') renderTurfMgmt();
+  if(tab==='dashboard') loadDashboard();
+  if(tab==='manual') initManual();
+};
+
+window.loadAll = async function() {
+  loadDashboard();
+};
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const today = new Date();
+  document.getElementById('dashDate').textContent = today.toDateString();
+  document.getElementById('statTodayDate').textContent = today.toLocaleDateString('en-GB');
+  document.getElementById('statTurfs').textContent = TURFS.length;
+  try {
+    const snap = await getDocs(collection(db,'bookings'));
+    allBookings = [];
+    snap.forEach(d=>allBookings.push({docId:d.id,...d.data()}));
+    const todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    const active = allBookings.filter(b=>b.status!=='cancelled');
+    const todayBooks = active.filter(b=>b.date===todayStr);
+    const totalAdv = active.reduce((s,b)=>s+(b.advance||0),0);
+    document.getElementById('statTotal').textContent = active.length;
+    document.getElementById('statToday').textContent = todayBooks.length;
+    document.getElementById('statRevenue').textContent = '৳'+totalAdv.toLocaleString();
+    const recent = [...allBookings].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)).slice(0,10);
+    document.getElementById('recentCount').textContent = recent.length+' recent';
+    renderBookingTable('recentTable', recent, true);
+  } catch(e){ showToast('Error: '+e.message,'error'); }
+}
+
+// ── ALL BOOKINGS ──
+async function loadBookings() {
+  document.getElementById('bookingsTable').innerHTML='<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+  try {
+    const snap = await getDocs(collection(db,'bookings'));
+    allBookings = [];
+    snap.forEach(d=>allBookings.push({docId:d.id,...d.data()}));
+    allBookings.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const sel = document.getElementById('filterTurf');
+    sel.innerHTML='<option value="">All Turfs</option>';
+    const names = [...new Set(allBookings.map(b=>b.turfName).filter(Boolean))];
+    names.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
+    applyFilter();
+  } catch(e){ showToast('Error: '+e.message,'error'); }
+}
+
+window.applyFilter = function() {
+  const date=document.getElementById('filterDate').value;
+  const turf=document.getElementById('filterTurf').value;
+  const status=document.getElementById('filterStatus').value;
+  filteredBookings=allBookings.filter(b=>{
+    if(date&&b.date!==date)return false;
+    if(turf&&b.turfName!==turf)return false;
+    if(status&&b.status!==status)return false;
+    return true;
+  });
+  document.getElementById('bookingCount').textContent=filteredBookings.length+' booking'+(filteredBookings.length!==1?'s':'');
+  renderBookingTable('bookingsTable',filteredBookings,false);
+};
+
+window.clearFilter = function() {
+  document.getElementById('filterDate').value='';
+  document.getElementById('filterTurf').value='';
+  document.getElementById('filterStatus').value='';
+  applyFilter();
+};
+
+function renderBookingTable(containerId, bookings, compact) {
+  const wrap = document.getElementById(containerId);
+  if(!bookings.length){ wrap.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div>No bookings found</div>'; return; }
+  let html=`<table><thead><tr><th>Ref</th><th>Turf</th><th>Date</th><th>Time</th>${compact?'':'<th>Phone</th><th>Type</th><th>Advance</th>'}<th>Status</th><th></th></tr></thead><tbody>`;
+  bookings.forEach(b=>{
+    const isManual=b.status==='manual';
+    const isCancelled=b.status==='cancelled';
+    const sb=isCancelled?'badge-cancelled':isManual?'badge-manual':'badge-confirmed';
+    html+=`<tr>
+      <td><span class="ref-code">${b.refCode||'—'}</span></td>
+      <td><div style="font-weight:600;font-size:13px">${b.turfName||'—'}</div><div class="td-muted">${b.turfAddr||''}</div></td>
+      <td>${b.date||'—'}</td><td>${b.timeSlot||'—'}</td>
+      ${compact?'':'<td>'+(b.phone||'—')+'</td><td>'+(isManual?'<span class="badge badge-manual">Manual</span>':'Online')+'</td><td style="color:var(--green);font-weight:600">৳'+(b.advance||0)+'</td>'}
+      <td><span class="badge ${sb}">${b.status}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openDetail('${b.docId}')">View</button></td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+}
+
+// ── DETAIL MODAL ──
+window.openDetail = function(docId) {
+  currentBookingId=docId;
+  const b=allBookings.find(x=>x.docId===docId);
+  if(!b)return;
+  const isCancelled=b.status==='cancelled';
+  const isManual=b.status==='manual';
+  document.getElementById('cancelBtn').style.display=isCancelled?'none':'inline-block';
+  document.getElementById('detailContent').innerHTML=`
+    <div class="detail-row"><span class="dl">Ref</span><span class="dv" style="color:var(--green);font-family:var(--font-head);font-size:18px;letter-spacing:1px">${b.refCode||'—'}</span></div>
+    <div class="detail-row"><span class="dl">Type</span><span class="dv"><span class="badge ${isManual?'badge-manual':'badge-confirmed'}">${isManual?'Manual / Walk-in':'Online'}</span></span></div>
+    <div class="detail-row"><span class="dl">Turf</span><span class="dv">${b.turfName||'—'}</span></div>
+    <div class="detail-row"><span class="dl">Date</span><span class="dv">${b.date||'—'}</span></div>
+    <div class="detail-row"><span class="dl">Time</span><span class="dv">${b.timeSlot||'—'}</span></div>
+    <div class="detail-row"><span class="dl">Phone</span><span class="dv">${b.phone||'—'}</span></div>
+    ${b.customerName?`<div class="detail-row"><span class="dl">Customer</span><span class="dv">${b.customerName}</span></div>`:''}
+    ${b.note?`<div class="detail-row"><span class="dl">Note</span><span class="dv">${b.note}</span></div>`:''}
+    <div class="detail-row"><span class="dl">Advance</span><span class="dv" style="color:var(--green)">৳${b.advance||0}</span></div>
+    <div class="detail-row"><span class="dl">Due</span><span class="dv">৳${b.due||0}</span></div>
+    <div class="detail-row"><span class="dl">Status</span><span class="dv"><span class="badge ${isCancelled?'badge-cancelled':isManual?'badge-manual':'badge-confirmed'}">${b.status}</span></span></div>`;
+  document.getElementById('detailModal').classList.add('open');
+};
+
+window.cancelBooking = async function() {
+  if(!currentBookingId)return;
+  if(!confirm('Cancel this booking?'))return;
+  try {
+    await updateDoc(doc(db,'bookings',currentBookingId),{status:'cancelled'});
+    showToast('Booking cancelled','success');
+    closeModal('detailModal');
+    loadDashboard();
+    if(document.getElementById('tab-bookings').classList.contains('active')) loadBookings();
+  } catch(e){ showToast('Error: '+e.message,'error'); }
+};
+
+window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
+
+// ── MANUAL BOOKING ──
+function initManual() {
+  manualSelSlot=null;
+  const sel = document.getElementById('manualTurf');
+  sel.innerHTML='<option value="">— Select Turf —</option>';
+  TURFS.forEach(t=>{ const o=document.createElement('option'); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
+  // Set today as default date
+  const today=new Date();
+  document.getElementById('manualDate').value=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  document.getElementById('manualSlotsWrap').style.display='none';
+  document.getElementById('manualBookBtn').disabled=true;
+}
+
+window.loadManualSlots = async function() {
+  const turfId=document.getElementById('manualTurf').value;
+  const dateVal=document.getElementById('manualDate').value;
+  if(!turfId||!dateVal) return;
+  manualSelSlot=null;
+  document.getElementById('manualBookBtn').disabled=true;
+  document.getElementById('manualSlotsWrap').style.display='block';
+  const [y,m,d]=dateVal.split('-');
+  document.getElementById('manualDateLabel').textContent=parseInt(d)+' '+MONTHS[parseInt(m)-1]+' '+y;
+  const grid=document.getElementById('manualSlotGrid');
+  grid.innerHTML='<div style="grid-column:1/-1;color:var(--muted);font-size:13px"><span class="spinner"></span> Loading...</div>';
+  try {
+    const q=query(collection(db,'bookings'),where('date','==',dateVal),where('turfId','==',turfId));
+    const snap=await getDocs(q);
+    const bookedSlots=new Set();
+    snap.forEach(d=>{ if(d.data().status!=='cancelled') bookedSlots.add(d.data().timeSlot); });
+    grid.innerHTML='';
+    const now=new Date();
+    ALL_SLOTS.forEach(s=>{
+      const btn=document.createElement('div');
+      const [h,rest]=s.split(':'); const min=rest.split(' ')[0]; const ampm=rest.split(' ')[1];
+      let hr=parseInt(h)+(ampm==='PM'&&h!=='12'?12:0)-(ampm==='AM'&&h==='12'?12:0);
+      const slotDt=new Date(parseInt(y),parseInt(m)-1,parseInt(d)); slotDt.setHours(hr,parseInt(min),0,0);
+      const isPast=slotDt<=now;
+      const isBooked=bookedSlots.has(s);
+      btn.className='slot-btn'+(isBooked||isPast?' slot-booked':'');
+      btn.textContent=s;
+      if(isBooked) btn.title='Already booked';
+      if(!isBooked&&!isPast) btn.onclick=()=>{
+        manualSelSlot=s;
+        document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('slot-selected'));
+        btn.classList.add('slot-selected');
+        document.getElementById('manualBookBtn').disabled=false;
+      };
+      grid.appendChild(btn);
+    });
+  } catch(e){ grid.innerHTML='<div style="color:var(--red);grid-column:1/-1">Error loading slots</div>'; }
+};
+
+window.saveManualBooking = async function() {
+  const turfId=document.getElementById('manualTurf').value;
+  const dateVal=document.getElementById('manualDate').value;
+  const phone=document.getElementById('manualPhone').value.trim();
+  const name=document.getElementById('manualName').value.trim();
+  const note=document.getElementById('manualNote').value.trim();
+  if(!turfId||!dateVal||!manualSelSlot){ showToast('Turf, date ও slot select করো','error'); return; }
+  if(!phone){ showToast('Phone number দাও','error'); return; }
+  const turf=TURFS.find(t=>t.id===turfId);
+  const btn=document.getElementById('manualBookBtn');
+  btn.disabled=true; btn.textContent='Saving...';
+  try {
+    // Check again if slot still free
+    const q=query(collection(db,'bookings'),where('date','==',dateVal),where('turfId','==',turfId),where('timeSlot','==',manualSelSlot));
+    const existing=await getDocs(q);
+    const conflict=existing.docs.some(d=>d.data().status!=='cancelled');
+    if(conflict){ showToast('এই slot টা এইমাত্র book হয়ে গেছে!','error'); btn.disabled=false; btn.textContent='✓ Block This Slot'; return; }
+    const ref='MB-'+Math.floor(Math.random()*9000+1000)+'-CML';
+    await addDoc(collection(db,'bookings'),{
+      refCode:ref, turfId:turf.id, turfName:turf.name, turfAddr:turf.addr,
+      date:dateVal, timeSlot:manualSelSlot, phone:phone,
+      customerName:name||'Walk-in', note:note||'Manual booking by manager',
+      total:turf.price, advance:turf.price, due:0,
+      payMethod:'Cash', status:'manual', createdAt:Timestamp.now()
+    });
+    showToast('Slot blocked! — '+ref,'success');
+    document.getElementById('manualPhone').value='';
+    document.getElementById('manualName').value='';
+    document.getElementById('manualNote').value='';
+    manualSelSlot=null;
+    btn.textContent='✓ Block This Slot';
+    loadManualSlots();
+  } catch(e){ showToast('Error: '+e.message,'error'); btn.disabled=false; btn.textContent='✓ Block This Slot'; }
+};
+
+// ── TURF MGMT (display only — prices in code) ──
+function renderTurfMgmt() {
+  const grid=document.getElementById('turfMgmtGrid');
+  grid.innerHTML='';
+  TURFS.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='turf-mgmt-card';
+    card.innerHTML=`
+      <div style="margin-bottom:12px">
+        <div class="turf-mgmt-name">${t.name}</div>
+        <div class="turf-mgmt-addr">📍 ${t.addr}</div>
+      </div>
+      <div class="turf-price-edit">
+        <span style="font-size:12px;color:var(--muted)">৳</span>
+        <input type="number" class="price-edit-input" value="${t.price}" id="pr-${t.id}" onchange="updatePrice('${t.id}',this.value)">
+        <span style="font-size:12px;color:var(--muted)">/hr</span>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Price change শুধু এই session এ। Permanent change এর জন্য index.html edit করো।</div>`;
+    grid.appendChild(card);
+  });
+}
+
+window.updatePrice = function(id, val) {
+  const t=TURFS.find(x=>x.id===id);
+  if(t){ t.price=Number(val); showToast(t.name+' price updated to ৳'+val,'success'); }
+};
+
+// Click outside to close modal
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+loadDashboard();
+</script>
+</body>
+</html>
