@@ -1,4 +1,3 @@
-cat > /mnt/user-data/outputs/firstbook/admin.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -15,7 +14,21 @@ cat > /mnt/user-data/outputs/firstbook/admin.html << 'HTMLEOF'
   --font-head:'Bebas Neue',sans-serif;--font:'DM Sans',sans-serif;
 }
 body{background:var(--black);color:var(--text);font-family:var(--font);min-height:100vh}
-.layout{display:flex;min-height:100vh}
+
+/* LOGIN */
+#adminLoginWrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+#adminLoginWrap .login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:360px}
+.login-logo{font-family:var(--font-head);font-size:36px;letter-spacing:1px;text-align:center;margin-bottom:4px}
+.login-logo em{color:#ccc;font-style:normal}.login-logo span{color:var(--green)}
+.login-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px}
+.login-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.login-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;margin-bottom:16px;transition:border-color .2s}
+.login-input:focus{border-color:var(--green-dark)}
+.login-btn{width:100%;background:var(--green);color:#000;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.login-btn:hover{background:var(--green-dark)}
+.login-err{color:var(--red);font-size:13px;text-align:center;margin-top:10px;display:none;background:var(--red-bg);padding:8px;border-radius:8px;border:1px solid #5a1a1a}
+
+.layout{display:flex;min-height:100vh;display:none}
 .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:10;display:flex;flex-direction:column}
 .main{margin-left:220px;flex:1;padding:28px 32px;max-width:calc(100vw - 220px)}
 .sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
@@ -119,7 +132,20 @@ tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
 </style>
 </head>
 <body>
-<div class="layout">
+
+<!-- ADMIN LOGIN -->
+<div id="adminLoginWrap">
+  <div class="login-box">
+    <div class="login-logo"><em>First</em><span>book</span></div>
+    <div class="login-sub">Admin Panel — Owner Only</div>
+    <label class="login-label">Admin Password</label>
+    <input type="password" class="login-input" id="adminPassInput" placeholder="Password দাও" onkeydown="if(event.key==='Enter')adminLogin()">
+    <button class="login-btn" onclick="adminLogin()">Login →</button>
+    <div class="login-err" id="adminLoginErr">❌ ভুল password!</div>
+  </div>
+</div>
+
+<div class="layout" id="adminLayout">
   <div class="sidebar">
     <div class="sb-logo">
       <div class="logo"><em>First</em><span>book</span></div>
@@ -133,6 +159,9 @@ tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
     </nav>
     <div class="sb-footer">
       <a href="index.html" target="_blank">🌐 Open Booking Site</a>
+      <div style="margin-top:10px">
+        <button onclick="sessionStorage.removeItem('adminAuth');location.reload()" style="background:transparent;border:1px solid #5a1a1a;color:var(--red);padding:6px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-family:var(--font);width:100%">🔒 Logout</button>
+      </div>
     </div>
   </div>
 
@@ -252,6 +281,30 @@ tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<script>
+// ══ ADMIN PASSWORD — এখানে তোমার password বদলাও ══
+const ADMIN_PASSWORD = '@#@M@$1f#@#';
+function adminLogin() {
+  const pass = document.getElementById('adminPassInput').value.trim();
+  if(pass === ADMIN_PASSWORD) {
+    document.getElementById('adminLoginWrap').style.display = 'none';
+    document.getElementById('adminLayout').style.display = 'flex';
+    sessionStorage.setItem('adminAuth','true');
+  } else {
+    document.getElementById('adminLoginErr').style.display = 'block';
+    document.getElementById('adminPassInput').value = '';
+  }
+}
+
+// Auto-login if already authenticated this session
+window.onload = function() {
+  if(sessionStorage.getItem('adminAuth')==='true') {
+    document.getElementById('adminLoginWrap').style.display = 'none';
+    document.getElementById('adminLayout').style.display = 'flex';
+  }
+};
+</script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -512,31 +565,49 @@ window.saveManualBooking = async function() {
   } catch(e){ showToast('Error: '+e.message,'error'); btn.disabled=false; btn.textContent='✓ Block This Slot'; }
 };
 
-// ── TURF MGMT (display only — prices in code) ──
-function renderTurfMgmt() {
+// ── TURF MGMT — Firebase থেকে price load ও save ──
+async function renderTurfMgmt() {
   const grid=document.getElementById('turfMgmtGrid');
+  grid.innerHTML='<div class="empty-state"><span class="spinner"></span> Loading prices from Firebase...</div>';
+  // Load current prices from Firebase 'prices' collection
+  let fbPrices={};
+  try {
+    const snap=await getDocs(collection(db,'prices'));
+    snap.forEach(d=>{ fbPrices[d.id]=d.data().price; });
+  } catch(e){ console.log('prices collection not yet created'); }
   grid.innerHTML='';
   TURFS.forEach(t=>{
+    const currentPrice = fbPrices[t.id] || t.price;
     const card=document.createElement('div');
     card.className='turf-mgmt-card';
     card.innerHTML=`
-      <div style="margin-bottom:12px">
+      <div style="margin-bottom:14px">
         <div class="turf-mgmt-name">${t.name}</div>
         <div class="turf-mgmt-addr">📍 ${t.addr}</div>
       </div>
       <div class="turf-price-edit">
-        <span style="font-size:12px;color:var(--muted)">৳</span>
-        <input type="number" class="price-edit-input" value="${t.price}" id="pr-${t.id}" onchange="updatePrice('${t.id}',this.value)">
+        <span style="font-size:13px;color:var(--muted);font-weight:600">৳</span>
+        <input type="number" class="price-edit-input" value="${currentPrice}" id="pr-${t.id}">
         <span style="font-size:12px;color:var(--muted)">/hr</span>
+        <div style="flex:1"></div>
+        <button onclick="savePrice('${t.id}')" style="background:var(--green);color:#000;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Save</button>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted)">Price change শুধু এই session এ। Permanent change এর জন্য index.html edit করো।</div>`;
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Firebase এ save হলে booking site এও নতুন price দেখাবে।</div>`;
     grid.appendChild(card);
   });
 }
 
-window.updatePrice = function(id, val) {
-  const t=TURFS.find(x=>x.id===id);
-  if(t){ t.price=Number(val); showToast(t.name+' price updated to ৳'+val,'success'); }
+window.savePrice = async function(turfId) {
+  const val=document.getElementById('pr-'+turfId).value;
+  if(!val||isNaN(val)){ showToast('Valid price দাও','error'); return; }
+  try {
+    // Save to Firebase 'prices' collection
+    const { setDoc, doc:fsDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(fsDoc(db,'prices',turfId),{price:Number(val)});
+    const turf=TURFS.find(t=>t.id===turfId);
+    if(turf) turf.price=Number(val);
+    showToast((turf?.name||turfId)+' price saved: ৳'+val,'success');
+  } catch(e){ showToast('Error saving price: '+e.message,'error'); }
 };
 
 // Click outside to close modal
