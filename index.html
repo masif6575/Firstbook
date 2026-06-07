@@ -177,6 +177,31 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
       <div class="time-grid" id="timeGrid"></div>
     </div>
 
+    <!-- INVITE FRIENDS -->
+    <div id="inviteSection" style="display:none;margin-top:20px">
+      <div style="background:linear-gradient(135deg,#0d1a0d,#0a1200);border:1px solid var(--green-dark);border-radius:14px;padding:18px 20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <div style="font-family:var(--font-head);font-size:18px;letter-spacing:.5px;color:var(--green)">⚽ INVITE FRIENDS</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">বন্ধুদের match এ invite করো</div>
+          </div>
+          <div style="font-size:28px">🏟️</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--text);line-height:1.7" id="invitePreview"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <button onclick="shareWhatsApp()" style="background:#25D366;color:#fff;border:none;padding:10px 8px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <span style="font-size:16px">💬</span> WhatsApp
+          </button>
+          <button onclick="shareCopy()" id="copyBtn" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:10px 8px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s" onmouseover="this.style.borderColor='var(--green-dark)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span style="font-size:16px">📋</span> Copy
+          </button>
+          <button onclick="shareNative()" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:10px 8px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s" onmouseover="this.style.borderColor='var(--green-dark)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span style="font-size:16px">📤</span> Share
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="btn-row">
       <button class="btn btn-primary" id="btn1" disabled onclick="goStep2()">View Available Turfs →</button>
     </div>
@@ -284,9 +309,9 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const ALL_SLOTS = ['07:00 AM','08:00 AM','09:00 AM','10:00 AM','11:00 AM','12:00 PM','01:00 PM','02:00 PM','03:00 PM','04:00 PM','05:00 PM','06:00 PM','07:00 PM','08:00 PM','09:00 PM','10:00 PM'];
 
-let curYear = 2026, curMonth = 4;
+let curYear = new Date().getFullYear(), curMonth = new Date().getMonth();
 let selDate = null, selTime = null, selTurf = null, payMethod = 'bKash';
-let bookedMap = {}; // turfId -> [slots]
+let bookedMap = {};
 
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
@@ -365,7 +390,50 @@ function selectTime(t) {
   selTime=t;
   document.getElementById('btn1').disabled=false;
   renderTimeSlots();
+  showInvite();
 }
+
+function showInvite() {
+  if(!selDate || !selTime) return;
+  const dateStr = selDate.getDate()+' '+MONTHS[selDate.getMonth()]+' '+selDate.getFullYear();
+  const siteUrl = window.location.origin + window.location.pathname.replace('index.html','');
+  const inviteText = `⚽ চলো match খেলি!\n\n📅 তারিখ: ${dateStr}\n⏰ সময়: ${selTime}\n📍 Cumilla তে turf বুকিং হচ্ছে\n\n👉 তুমিও book করো: ${siteUrl}\n\n#Firstbook #CumillaTurf`;
+  document.getElementById('invitePreview').textContent = inviteText;
+  document.getElementById('inviteSection').style.display = 'block';
+}
+
+window.shareWhatsApp = function() {
+  if(!selDate||!selTime){ showToast('আগে date ও time select করো','error'); return; }
+  const dateStr = selDate.getDate()+' '+MONTHS[selDate.getMonth()]+' '+selDate.getFullYear();
+  const siteUrl = window.location.origin + window.location.pathname.replace('index.html','');
+  const msg = encodeURIComponent(`⚽ চলো match খেলি!\n\n📅 তারিখ: ${dateStr}\n⏰ সময়: ${selTime}\n📍 Cumilla তে turf বুকিং হচ্ছে\n\n👉 তুমিও book করো: ${siteUrl}\n\n#Firstbook #CumillaTurf`);
+  window.open('https://wa.me/?text='+msg, '_blank');
+};
+
+window.shareCopy = function() {
+  const text = document.getElementById('invitePreview').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.innerHTML = '<span style="font-size:16px">✅</span> Copied!';
+    btn.style.borderColor = 'var(--green-dark)';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => {
+      btn.innerHTML = '<span style="font-size:16px">📋</span> Copy';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--text)';
+    }, 2000);
+  }).catch(() => showToast('Copy failed, manually copy করো', 'error'));
+};
+
+window.shareNative = function() {
+  const text = document.getElementById('invitePreview').textContent;
+  if(navigator.share) {
+    navigator.share({ title: 'Firstbook — Turf Invite', text: text })
+      .catch(() => {});
+  } else {
+    shareCopy();
+  }
+};
 
 window.changeMonth = function(dir) {
   curMonth+=dir;
@@ -534,6 +602,7 @@ window.resetAll = function() {
   document.getElementById('btn1').disabled=true;
   document.getElementById('btn2').disabled=true;
   document.getElementById('timeSection').style.display='none';
+  document.getElementById('inviteSection').style.display='none';
   document.getElementById('phoneInput').value='';
   document.querySelectorAll('.pay-opt').forEach(e=>e.classList.remove('selected'));
   document.getElementById('pm-bKash').classList.add('selected');
