@@ -488,6 +488,10 @@ async function renderTurfs() {
     available.forEach(t => {
       const isSel = selTurf&&selTurf.id===t.id;
       const el = document.createElement('div');
+      const currentPrice = getTurfPrice(t, selTime);
+      // pricing badge for SK Sports Arena
+      const pricingBadge = t.pricing ?
+        `<div class="tag" style="background:#0a1a0a;border-color:#1a3a1a;color:#aaa;font-size:10px">২টা-৫টা: ৳${t.pricing.day} &nbsp;|&nbsp; ৫টা-১২টা: ৳${t.pricing.night}</div>` : '';
       el.className='turf-card'+(isSel?' selected':'');
       el.innerHTML=`<div class="radio-circle"></div>
         <div class="turf-header">
@@ -496,15 +500,20 @@ async function renderTurfs() {
             <div class="turf-addr">📍 ${t.addr}</div>
           </div>
           <div>
-            <div class="price-main">৳${t.price}</div>
+            <div class="price-main">৳${currentPrice}</div>
             <div class="price-sub">per hour</div>
           </div>
         </div>
         <div class="turf-tags">
           <div class="tag green"><span class="avail-dot"></span>Available</div>
           ${t.tags.map(tg=>`<div class="tag">${tg}</div>`).join('')}
+          ${pricingBadge}
         </div>`;
-      el.onclick=()=>{ selTurf=t; document.getElementById('btn2').disabled=false; renderTurfs(); };
+      el.onclick=()=>{
+        selTurf={...t, price: getTurfPrice(t, selTime)};
+        document.getElementById('btn2').disabled=false;
+        renderTurfs();
+      };
       list.appendChild(el);
     });
   } catch(e){
@@ -633,13 +642,32 @@ function nextHour(t) {
 // Turf data — edit prices here directly
 const DEFAULT_TURFS = [
   {id:'t1', name:'Cumilla Turf Zone', addr:'Noapara Road, Cumilla', price:1200, tags:['Floodlit','Parking','Changing Room']},
-  {id:'t2', name:'S.K. Sports Arena', addr:'Jafar Khan Road, Race Course, Cumilla', price:1500, tags:['Premium','Floodlit','Cafeteria']},
+  {id:'t2', name:'S.K. Sports Arena', addr:'Jafar Khan Road, Race Course, Cumilla', price:2000, tags:['Premium','Floodlit','Cafeteria'],
+    pricing:{day:2000, night:3000, dayStart:14, dayEnd:17}},
   {id:'t3', name:'Bhuiyan Turf Ground', addr:'Shatora, Cumilla', price:900, tags:['Outdoor','Affordable']},
   {id:'t4', name:'A.K Sports Complex', addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100, tags:['Floodlit','Changing Room']},
   {id:'t5', name:'K.Ali Sports Complex', addr:'Noapara Road, Cumilla', price:1000, tags:['Indoor','AC Changing Room']},
   {id:'t6', name:'Cumilla Kings Arena', addr:'Telikona, Nurpur, Cumilla', price:1300, tags:['Premium','Parking','Floodlit']},
   {id:'t7', name:'Khandakar S.A Sports Arena', addr:'Maghigcha, Cumilla', price:950, tags:['Affordable','Floodlit']},
 ];
+
+// Get price for a turf based on selected time slot
+function getTurfPrice(turf, timeSlot) {
+  if(!turf.pricing || !timeSlot) return turf.price;
+  const parts = timeSlot.split(' ');
+  const [h] = parts[0].split(':');
+  const ampm = parts[1];
+  let hr = parseInt(h) + (ampm==='PM' && h!=='12' ? 12 : 0) - (ampm==='AM' && h==='12' ? 12 : 0);
+  // দুপুর ২টা (14) থেকে বিকাল ৫টা (17) পর্যন্ত day price
+  if(hr >= turf.pricing.dayStart && hr < turf.pricing.dayEnd) {
+    return turf.pricing.day;
+  }
+  // বিকাল ৫টার পর night price
+  if(hr >= turf.pricing.dayEnd) {
+    return turf.pricing.night;
+  }
+  return turf.price;
+}
 
 // Load turfs from Firebase on startup
 async function loadTurfsAndInit() {
