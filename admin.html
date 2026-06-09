@@ -258,7 +258,11 @@ tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
     <!-- MANAGE TURFS -->
     <div class="tab-page" id="tab-turfs">
       <div class="page-header">
-        <div><div class="page-title">MANAGE TURFS</div><div class="page-sub">Edit price, toggle availability</div></div>
+        <div><div class="page-title">MANAGE TURFS</div><div class="page-sub">Price ও time-based pricing Firebase এ save করো</div></div>
+        <button class="btn btn-outline" onclick="renderTurfMgmt()">↻ Refresh</button>
+      </div>
+      <div style="background:var(--green-glow);border:1px solid var(--green-dark);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:var(--green)">
+        💡 এখানে price save করলে booking site এ automatically নতুন price দেখাবে। Time-based pricing on করলে নির্দিষ্ট সময়ে আলাদা price charge হবে।
       </div>
       <div class="turf-mgmt-grid" id="turfMgmtGrid">
         <div class="empty-state"><span class="spinner"></span> Loading...</div>
@@ -284,7 +288,8 @@ tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
 
 <script>
 // ══ ADMIN PASSWORD — এখানে তোমার password বদলাও ══
-const ADMIN_PASSWORD = '@#@M@$1f#@#';
+const ADMIN_PASSWORD = 'firstbook@admin2026';
+
 function adminLogin() {
   const pass = document.getElementById('adminPassInput').value.trim();
   if(pass === ADMIN_PASSWORD) {
@@ -565,49 +570,170 @@ window.saveManualBooking = async function() {
   } catch(e){ showToast('Error: '+e.message,'error'); btn.disabled=false; btn.textContent='✓ Block This Slot'; }
 };
 
-// ── TURF MGMT — Firebase থেকে price load ও save ──
+// ── TURF MGMT — Firebase থেকে price ও time-based pricing ──
 async function renderTurfMgmt() {
-  const grid=document.getElementById('turfMgmtGrid');
-  grid.innerHTML='<div class="empty-state"><span class="spinner"></span> Loading prices from Firebase...</div>';
-  // Load current prices from Firebase 'prices' collection
-  let fbPrices={};
+  const grid = document.getElementById('turfMgmtGrid');
+  grid.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+  let fbPrices = {};
   try {
-    const snap=await getDocs(collection(db,'prices'));
-    snap.forEach(d=>{ fbPrices[d.id]=d.data().price; });
-  } catch(e){ console.log('prices collection not yet created'); }
-  grid.innerHTML='';
-  TURFS.forEach(t=>{
-    const currentPrice = fbPrices[t.id] || t.price;
-    const card=document.createElement('div');
-    card.className='turf-mgmt-card';
-    card.innerHTML=`
+    const snap = await getDocs(collection(db,'prices'));
+    snap.forEach(d => { fbPrices[d.id] = d.data(); });
+  } catch(e) { console.log('prices not found'); }
+  grid.innerHTML = '';
+  TURFS.forEach(t => {
+    const saved = fbPrices[t.id] || {};
+    const basePrice = saved.price || t.price;
+    const hasTbp = saved.timePricing || false;
+    const slots = saved.timeSlots || [];
+
+    const card = document.createElement('div');
+    card.className = 'turf-mgmt-card';
+    card.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:0';
+    card.innerHTML = `
       <div style="margin-bottom:14px">
         <div class="turf-mgmt-name">${t.name}</div>
         <div class="turf-mgmt-addr">📍 ${t.addr}</div>
       </div>
-      <div class="turf-price-edit">
-        <span style="font-size:13px;color:var(--muted);font-weight:600">৳</span>
-        <input type="number" class="price-edit-input" value="${currentPrice}" id="pr-${t.id}">
-        <span style="font-size:12px;color:var(--muted)">/hr</span>
-        <div style="flex:1"></div>
-        <button onclick="savePrice('${t.id}')" style="background:var(--green);color:#000;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Save</button>
+
+      <!-- BASE PRICE -->
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Base Price (সব সময়)</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:var(--muted);font-size:13px;font-weight:600">৳</span>
+          <input type="number" id="bp-${t.id}" value="${basePrice}" style="background:var(--black);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--green);font-size:16px;font-family:'Bebas Neue',sans-serif;width:110px;outline:none;letter-spacing:.5px" onfocus="this.style.borderColor='var(--green-dark)'" onblur="this.style.borderColor='var(--border)'">
+          <span style="color:var(--muted);font-size:12px">/hr</span>
+        </div>
       </div>
-      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Firebase এ save হলে booking site এও নতুন price দেখাবে।</div>`;
+
+      <!-- TIME-BASED PRICING TOGGLE -->
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${hasTbp?'14px':'0'}">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Time-based Pricing</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">সময় অনুযায়ী আলাদা price</div>
+          </div>
+          <label style="position:relative;width:44px;height:24px;cursor:pointer;display:inline-block">
+            <input type="checkbox" id="tbp-${t.id}" ${hasTbp?'checked':''} onchange="toggleTbp('${t.id}',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+            <span id="tbpSlider-${t.id}" style="position:absolute;inset:0;background:${hasTbp?'var(--green-dark)':'#333'};border-radius:24px;transition:.3s"></span>
+            <span id="tbpThumb-${t.id}" style="position:absolute;width:18px;height:18px;background:${hasTbp?'#000':'#666'};border-radius:50%;top:3px;left:${hasTbp?'23px':'3px'};transition:.3s"></span>
+          </label>
+        </div>
+
+        <!-- TIME SLOTS LIST -->
+        <div id="tbpSection-${t.id}" style="display:${hasTbp?'block':'none'}">
+          <div id="slotList-${t.id}">
+            ${slots.length ? slots.map((s,i) => renderSlotRow(t.id, i, s)).join('') :
+              `<div style="color:var(--muted);font-size:12px;padding:8px 0">নিচে + বাটন দিয়ে time slot add করো</div>`}
+          </div>
+          <button onclick="addSlotRow('${t.id}')" style="background:var(--green-glow);border:1px solid var(--green-dark);color:var(--green);padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);margin-top:8px;width:100%">+ নতুন Time Range Add করো</button>
+        </div>
+      </div>
+
+      <!-- SAVE BUTTON -->
+      <button onclick="saveTurfPricing('${t.id}')" style="width:100%;background:var(--green);color:#000;border:none;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Save করো</button>
+      <div id="saveMsg-${t.id}" style="font-size:12px;text-align:center;margin-top:8px;display:none"></div>
+    `;
     grid.appendChild(card);
   });
 }
 
-window.savePrice = async function(turfId) {
-  const val=document.getElementById('pr-'+turfId).value;
-  if(!val||isNaN(val)){ showToast('Valid price দাও','error'); return; }
+function renderSlotRow(turfId, idx, slot) {
+  return `<div id="slotRow-${turfId}-${idx}" style="background:var(--black);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center">
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">From</div>
+        <select id="from-${turfId}-${idx}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:var(--font);outline:none">
+          ${generateHourOptions(slot?.from||'14:00')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">To</div>
+        <select id="to-${turfId}-${idx}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;font-family:var(--font);outline:none">
+          ${generateHourOptions(slot?.to||'17:00')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Price ৳</div>
+        <input type="number" id="price-${turfId}-${idx}" value="${slot?.price||1500}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--green);font-size:13px;font-family:'Bebas Neue',sans-serif;outline:none">
+      </div>
+      <button onclick="removeSlotRow('${turfId}',${idx})" style="background:var(--red-bg);border:1px solid #5a1a1a;color:var(--red);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;margin-top:16px">✕</button>
+    </div>
+  </div>`;
+}
+
+function generateHourOptions(selected) {
+  const hours = [
+    {val:'07:00',label:'সকাল ৭টা'},{val:'08:00',label:'সকাল ৮টা'},{val:'09:00',label:'সকাল ৯টা'},
+    {val:'10:00',label:'সকাল ১০টা'},{val:'11:00',label:'সকাল ১১টা'},{val:'12:00',label:'দুপুর ১২টা'},
+    {val:'13:00',label:'দুপুর ১টা'},{val:'14:00',label:'দুপুর ২টা'},{val:'15:00',label:'বিকাল ৩টা'},
+    {val:'16:00',label:'বিকাল ৪টা'},{val:'17:00',label:'বিকাল ৫টা'},{val:'18:00',label:'সন্ধ্যা ৬টা'},
+    {val:'19:00',label:'সন্ধ্যা ৭টা'},{val:'20:00',label:'রাত ৮টা'},{val:'21:00',label:'রাত ৯টা'},
+    {val:'22:00',label:'রাত ১০টা'},{val:'23:00',label:'রাত ১১টা'},{val:'24:00',label:'রাত ১২টা'},
+  ];
+  return hours.map(h => `<option value="${h.val}" ${selected===h.val?'selected':''}>${h.label}</option>`).join('');
+}
+
+const slotCounts = {};
+window.toggleTbp = function(turfId, checked) {
+  document.getElementById('tbpSection-'+turfId).style.display = checked ? 'block' : 'none';
+  const slider = document.getElementById('tbpSlider-'+turfId);
+  const thumb = document.getElementById('tbpThumb-'+turfId);
+  slider.style.background = checked ? 'var(--green-dark)' : '#333';
+  thumb.style.background = checked ? '#000' : '#666';
+  thumb.style.left = checked ? '23px' : '3px';
+};
+
+window.addSlotRow = function(turfId) {
+  if(!slotCounts[turfId]) slotCounts[turfId] = 0;
+  slotCounts[turfId]++;
+  const idx = slotCounts[turfId];
+  const list = document.getElementById('slotList-'+turfId);
+  // Remove empty message if exists
+  const empty = list.querySelector('div[style*="color:var(--muted)"]');
+  if(empty) empty.remove();
+  list.insertAdjacentHTML('beforeend', renderSlotRow(turfId, idx, null));
+};
+
+window.removeSlotRow = function(turfId, idx) {
+  const row = document.getElementById('slotRow-'+turfId+'-'+idx);
+  if(row) row.remove();
+};
+
+window.saveTurfPricing = async function(turfId) {
+  const basePrice = Number(document.getElementById('bp-'+turfId).value);
+  const hasTbp = document.getElementById('tbp-'+turfId).checked;
+  const msgEl = document.getElementById('saveMsg-'+turfId);
+
+  // Collect time slots
+  const timeSlots = [];
+  if(hasTbp) {
+    const rows = document.querySelectorAll(`[id^="slotRow-${turfId}-"]`);
+    rows.forEach(row => {
+      const idx = row.id.split('-').pop();
+      const from = document.getElementById(`from-${turfId}-${idx}`)?.value;
+      const to = document.getElementById(`to-${turfId}-${idx}`)?.value;
+      const price = Number(document.getElementById(`price-${turfId}-${idx}`)?.value);
+      if(from && to && price) timeSlots.push({from, to, price});
+    });
+  }
+
   try {
-    // Save to Firebase 'prices' collection
-    const { setDoc, doc:fsDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    await setDoc(fsDoc(db,'prices',turfId),{price:Number(val)});
-    const turf=TURFS.find(t=>t.id===turfId);
-    if(turf) turf.price=Number(val);
-    showToast((turf?.name||turfId)+' price saved: ৳'+val,'success');
-  } catch(e){ showToast('Error saving price: '+e.message,'error'); }
+    const { setDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(fsDoc(db,'prices',turfId), {
+      price: basePrice,
+      timePricing: hasTbp,
+      timeSlots: timeSlots,
+      updatedAt: new Date().toISOString()
+    });
+    msgEl.style.display = 'block';
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = '✅ Saved! Booking site এ সাথে সাথে apply হবে।';
+    setTimeout(() => msgEl.style.display='none', 3000);
+  } catch(e) {
+    msgEl.style.display = 'block';
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = '❌ Error: ' + e.message;
+  }
 };
 
 // Click outside to close modal

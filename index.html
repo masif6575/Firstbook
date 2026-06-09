@@ -653,18 +653,29 @@ const DEFAULT_TURFS = [
 
 // Get price for a turf based on selected time slot
 function getTurfPrice(turf, timeSlot) {
-  if(!turf.pricing || !timeSlot) return turf.price;
-  const parts = timeSlot.split(' ');
-  const [h] = parts[0].split(':');
-  const ampm = parts[1];
-  let hr = parseInt(h) + (ampm==='PM' && h!=='12' ? 12 : 0) - (ampm==='AM' && h==='12' ? 12 : 0);
-  // দুপুর ২টা (14) থেকে বিকাল ৫টা (17) পর্যন্ত day price
-  if(hr >= turf.pricing.dayStart && hr < turf.pricing.dayEnd) {
-    return turf.pricing.day;
+  if(!timeSlot) return turf.price;
+  // Check Firebase pricing first
+  if(turf.fbPricing && turf.fbPricing.timePricing && turf.fbPricing.timeSlots?.length) {
+    const parts = timeSlot.split(' ');
+    const [h] = parts[0].split(':');
+    const ampm = parts[1];
+    let hr = parseInt(h) + (ampm==='PM' && h!=='12' ? 12 : 0) - (ampm==='AM' && h==='12' ? 12 : 0);
+    // Check each time range
+    for(const slot of turf.fbPricing.timeSlots) {
+      const fromHr = parseInt(slot.from.split(':')[0]);
+      const toHr = parseInt(slot.to.split(':')[0]);
+      if(hr >= fromHr && hr < toHr) return slot.price;
+    }
+    return turf.fbPricing.price || turf.price;
   }
-  // বিকাল ৫টার পর night price
-  if(hr >= turf.pricing.dayEnd) {
-    return turf.pricing.night;
+  // Fallback: hardcoded pricing for SK Sports Arena
+  if(turf.pricing) {
+    const parts = timeSlot.split(' ');
+    const [h] = parts[0].split(':');
+    const ampm = parts[1];
+    let hr = parseInt(h) + (ampm==='PM' && h!=='12' ? 12 : 0) - (ampm==='AM' && h==='12' ? 12 : 0);
+    if(hr >= turf.pricing.dayStart && hr < turf.pricing.dayEnd) return turf.pricing.day;
+    if(hr >= turf.pricing.dayEnd) return turf.pricing.night;
   }
   return turf.price;
 }
@@ -676,7 +687,11 @@ async function loadTurfsAndInit() {
     const pSnap = await getDocs(collection(db, 'prices'));
     pSnap.forEach(d => {
       const t = DEFAULT_TURFS.find(x => x.id === d.id);
-      if(t) t.price = d.data().price;
+      if(t) {
+        const data = d.data();
+        t.price = data.price || t.price;
+        t.fbPricing = data; // store full pricing data
+      }
     });
   } catch(e) { console.log('No prices collection yet, using defaults'); }
 
