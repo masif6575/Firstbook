@@ -136,11 +136,18 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-msg{color:var(--muted);font-size:14px;padding:20px 0;text-align:center}
 
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
-.toast.error{border-color:#c0392b;color:#e74c3c}
-.toast.success{border-color:var(--green-dark);color:var(--green)}
+/* HERO */
+.hero{position:relative;border-radius:16px;overflow:hidden;margin:20px 0 0;height:200px;background:#0a1a0a}
+.hero-img{width:100%;height:100%;object-fit:cover;opacity:.5}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.7) 0%,rgba(0,230,118,.08) 100%);display:flex;flex-direction:column;justify-content:center;padding:28px}
+.hero-tag{background:var(--green);color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px;letter-spacing:.5px;width:fit-content}
+.hero-title{font-family:var(--font-head);font-size:36px;letter-spacing:1px;color:#fff;line-height:1.1;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.hero-title span{color:var(--green)}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.7);margin-top:6px}
+
+/* TURF LOGO */
+.turf-logo{width:44px;height:44px;border-radius:10px;object-fit:contain;background:#fff;flex-shrink:0;padding:2px}
+.turf-logo-placeholder{width:44px;height:44px;border-radius:10px;background:var(--green-glow);border:1px solid var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -150,12 +157,22 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
     <div class="city-tag">📍 Cumilla</div>
   </header>
 
-  <div class="steps">
+  <!-- HERO -->
+  <div class="hero">
+    <img class="hero-img" src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=900&q=80" alt="Turf" onerror="this.style.display='none'">
+    <div class="hero-overlay">
+      <div class="hero-tag">⚽ CUMILLA'S #1 TURF BOOKING</div>
+      <div class="hero-title">Book Your <span>Perfect</span><br>Turf in Seconds</div>
+      <div class="hero-sub">৭টি premium turf • Instant confirmation • No advance payment</div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-top:20px">
     <div class="step active" id="s1"><div class="step-num">1</div>Date &amp; Time</div>
     <div class="step-line"></div>
     <div class="step" id="s2"><div class="step-num">2</div>Choose Turf</div>
     <div class="step-line"></div>
-    <div class="step" id="s3"><div class="step-num">3</div>Payment</div>
+    <div class="step" id="s3"><div class="step-num">3</div>Confirm</div>
   </div>
 
   <!-- PAGE 1: DATE & TIME -->
@@ -218,18 +235,18 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
     <div class="turf-list" id="turfList"></div>
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goStep1()">← Back</button>
-      <button class="btn btn-primary" id="btn2" disabled onclick="goStep3()">Proceed to Payment →</button>
+      <button class="btn btn-primary" id="btn2" disabled onclick="goStep3()">Confirm Details →</button>
     </div>
   </div>
 
-  <!-- PAGE 3: PAYMENT -->
+  <!-- PAGE 3: BOOKING CONFIRM -->
   <div class="page" id="page3">
     <div class="edit-banner">
       <div class="edit-info">📅 <span id="eb3date"></span> &nbsp;·&nbsp; ⏰ <span id="eb3time"></span> &nbsp;·&nbsp; <span id="eb3turf"></span></div>
       <button class="btn-edit" onclick="goStep1()">✏ Edit</button>
     </div>
     <div class="sec-title">BOOKING SUMMARY</div>
-    <div class="sec-sub">Confirm your details and pay 30% to secure the slot</div>
+    <div class="sec-sub">তোমার তথ্য দিয়ে booking confirm করো</div>
 
     <div class="summary-card">
       <div class="sum-row"><span class="lbl">Turf</span><span class="val" id="sTurf"></span></div>
@@ -237,31 +254,36 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
       <div class="sum-row"><span class="lbl">Date</span><span class="val" id="sDate"></span></div>
       <div class="sum-row"><span class="lbl">Time slot</span><span class="val" id="sTime"></span></div>
       <div class="sum-row"><span class="lbl">Duration</span><span class="val">1 Hour</span></div>
-      <div class="sum-row"><span class="lbl">Rate</span><span class="val" id="sRate"></span></div>
       <div class="sum-row total"><span class="lbl">Total</span><span class="val" id="sTotal"></span></div>
-      <div class="sum-row adv"><span class="lbl">Advance (30%)</span><span class="val" id="sAdv"></span></div>
-      <div class="sum-row"><span class="lbl">Due on arrival</span><span class="val" id="sDue"></span></div>
     </div>
 
-    <div class="pay-note">✅ Pay <strong id="payAmt"></strong> now to confirm. Remaining payable at the turf.</div>
+    <!-- USER INFO FORM -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:16px">
+      <div style="font-family:var(--font-head);font-size:18px;letter-spacing:.5px;margin-bottom:16px;color:var(--text)">তোমার তথ্য দাও</div>
 
-    <div style="margin-top:20px">
-      <div class="time-label">Payment method</div>
-      <div class="pay-grid">
-        <div class="pay-opt selected" id="pm-bKash" onclick="selPay('bKash')"><div class="pay-icon">💳</div><div class="pay-name">bKash</div></div>
-        <div class="pay-opt" id="pm-Nagad" onclick="selPay('Nagad')"><div class="pay-icon">📱</div><div class="pay-name">Nagad</div></div>
-        <div class="pay-opt" id="pm-Card" onclick="selPay('Card')"><div class="pay-icon">🏦</div><div class="pay-name">Card</div></div>
+      <div style="margin-bottom:14px">
+        <div class="phone-label">Phone Number <span style="color:var(--red)">*</span></div>
+        <input type="tel" class="phone-input" id="phoneInput" placeholder="01XXXXXXXXX" maxlength="11">
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div class="phone-label">তোমার নাম <span style="color:var(--red)">*</span></div>
+        <input type="text" class="phone-input" id="nameInput" placeholder="তোমার পুরো নাম">
+      </div>
+
+      <div style="margin-bottom:4px">
+        <div class="phone-label">Email <span style="color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0">(optional)</span></div>
+        <input type="email" class="phone-input" id="emailInput" placeholder="example@gmail.com">
       </div>
     </div>
 
-    <div class="phone-wrap">
-      <div class="phone-label">Your phone number</div>
-      <input type="tel" class="phone-input" id="phoneInput" placeholder="01XXXXXXXXX" maxlength="11">
+    <div style="background:var(--green-glow);border:1px solid var(--green-dark);border-radius:10px;padding:12px 16px;margin-top:14px;font-size:13px;color:var(--green);line-height:1.6">
+      ✅ Submit করলে তোমার slot confirm হয়ে যাবে। Turf এ গিয়ে payment করো।
     </div>
 
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goStep2()">← Back</button>
-      <button class="btn btn-primary" id="btn3" onclick="confirmBooking()">Book Now — Pay 30% →</button>
+      <button class="btn btn-primary" id="btn3" onclick="confirmBooking()">Confirm Booking →</button>
     </div>
   </div>
 
@@ -492,14 +514,18 @@ async function renderTurfs() {
       // pricing badge for SK Sports Arena
       const pricingBadge = t.pricing ?
         `<div class="tag" style="background:#0a1a0a;border-color:#1a3a1a;color:#aaa;font-size:10px">২টা-৫টা: ৳${t.pricing.day} &nbsp;|&nbsp; ৫টা-১২টা: ৳${t.pricing.night}</div>` : '';
+      const logoHtml = `<div class="turf-logo-placeholder">${t.emoji||'⚽'}</div>`;
       el.className='turf-card'+(isSel?' selected':'');
       el.innerHTML=`<div class="radio-circle"></div>
         <div class="turf-header">
-          <div>
-            <div class="turf-name">${t.name}</div>
-            <div class="turf-addr">📍 ${t.addr}</div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding-right:28px">
+            ${logoHtml}
+            <div>
+              <div class="turf-name">${t.name}</div>
+              <div class="turf-addr">📍 ${t.addr}</div>
+            </div>
           </div>
-          <div>
+          <div style="flex-shrink:0">
             <div class="price-main">৳${currentPrice}</div>
             <div class="price-sub">per hour</div>
           </div>
@@ -530,16 +556,11 @@ window.goStep3 = function() {
   document.getElementById('eb3turf').textContent=selTurf.name;
   setStepState(3);
   const total=selTurf.price;
-  const adv=Math.round(total*0.3);
   document.getElementById('sTurf').textContent=selTurf.name;
   document.getElementById('sAddr').textContent=selTurf.addr;
   document.getElementById('sDate').textContent=dateLabel();
   document.getElementById('sTime').textContent=selTime+' – '+nextHour(selTime);
-  document.getElementById('sRate').textContent='৳'+total+'/hr';
   document.getElementById('sTotal').textContent='৳'+total;
-  document.getElementById('sAdv').textContent='৳'+adv;
-  document.getElementById('sDue').textContent='৳'+(total-adv);
-  document.getElementById('payAmt').textContent='৳'+adv;
 };
 
 window.selPay = function(m) {
@@ -550,71 +571,71 @@ window.selPay = function(m) {
 
 window.confirmBooking = async function() {
   const phone = document.getElementById('phoneInput').value.trim();
-  if(!phone||phone.length<11){ showToast('Please enter a valid phone number','error'); return; }
-  const btn=document.getElementById('btn3');
-  btn.disabled=true; btn.textContent='Processing...';
+  const name = document.getElementById('nameInput').value.trim();
+  const email = document.getElementById('emailInput').value.trim();
+
+  if(!phone || phone.length < 11) { showToast('Valid phone number দাও (11 digits)','error'); return; }
+  if(!name) { showToast('তোমার নাম দাও','error'); return; }
+
+  const btn = document.getElementById('btn3');
+  btn.disabled = true; btn.textContent = 'Processing...';
+
   try {
-    const dateStr=selDate.getFullYear()+'-'+String(selDate.getMonth()+1).padStart(2,'0')+'-'+String(selDate.getDate()).padStart(2,'0');
+    const dateStr = selDate.getFullYear()+'-'+String(selDate.getMonth()+1).padStart(2,'0')+'-'+String(selDate.getDate()).padStart(2,'0');
+
     // Check conflict
-    const q=query(collection(db,'bookings'),where('date','==',dateStr),where('timeSlot','==',selTime),where('turfId','==',selTurf.id));
-    const existing=await getDocs(q);
+    const q = query(collection(db,'bookings'), where('date','==',dateStr), where('timeSlot','==',selTime), where('turfId','==',selTurf.id));
+    const existing = await getDocs(q);
     const alreadyBooked = !existing.empty && existing.docs.some(d=>d.data().status!=='cancelled');
-    if(alreadyBooked){ showToast('This slot was just booked! Please choose another.','error'); btn.disabled=false; btn.textContent='Book Now — Pay 30% →'; return; }
-
-    const total=selTurf.price;
-    const adv=Math.round(total*0.3);
-    const ref='FB-'+Math.floor(Math.random()*9000+1000)+'-CML';
-
-    // Save booking as 'pending' first
-    await addDoc(collection(db,'bookings'),{
-      refCode:ref, turfId:selTurf.id, turfName:selTurf.name, turfAddr:selTurf.addr,
-      date:dateStr, timeSlot:selTime, phone:phone,
-      payMethod:payMethod, total:total, advance:adv, due:total-adv,
-      status:'pending', paymentStatus:'pending',
-      createdAt:Timestamp.now()
-    });
-
-    // Call Netlify function to get SSLCommerz payment URL
-    btn.textContent='Redirecting to payment...';
-    const res = await fetch('/.netlify/functions/initiate-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        turfName: selTurf.name,
-        turfAddr: selTurf.addr,
-        turfId: selTurf.id,
-        date: dateStr,
-        timeSlot: selTime,
-        phone: phone,
-        advance: adv,
-        total: total,
-        refCode: ref,
-      })
-    });
-
-    const data = await res.json();
-    if(data.url) {
-      // Redirect to SSLCommerz payment page
-      window.location.href = data.url;
-    } else {
-      showToast('Payment error: ' + (data.error || 'Unknown error'), 'error');
-      btn.disabled=false; btn.textContent='Book Now — Pay 30% →';
+    if(alreadyBooked) {
+      showToast('এই slot টা এইমাত্র book হয়ে গেছে!','error');
+      btn.disabled=false; btn.textContent='Confirm Booking →'; return;
     }
-  } catch(e){
+
+    const ref = 'FB-'+Math.floor(Math.random()*9000+1000)+'-CML';
+
+    await addDoc(collection(db,'bookings'), {
+      refCode: ref,
+      turfId: selTurf.id, turfName: selTurf.name, turfAddr: selTurf.addr,
+      date: dateStr, timeSlot: selTime,
+      phone, customerName: name, email: email||'',
+      total: selTurf.price, advance: 0, due: selTurf.price,
+      payMethod: 'Cash at turf', status: 'confirmed',
+      createdAt: Timestamp.now()
+    });
+
+    // Show success
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('pageSuccess').classList.add('active');
+    document.getElementById('refCode').textContent = ref;
+    document.getElementById('successSub').textContent = selTurf.name+' এ booking confirmed — '+dateLabel()+', '+selTime;
+    document.getElementById('bookingDetail').innerHTML = `
+      <div>Turf <span>${selTurf.name}</span></div>
+      <div>Date <span>${dateLabel()}</span></div>
+      <div>Time <span>${selTime} – ${nextHour(selTime)}</span></div>
+      <div>Name <span>${name}</span></div>
+      <div>Phone <span>${phone}</span></div>
+      <div>Total <span>৳${selTurf.price}</span></div>
+      <div>Payment <span>Turf এ গিয়ে করো</span></div>`;
+    setStepState(3);
+    document.getElementById('s3').classList.add('done');
+    showToast('Booking confirmed!','success');
+
+  } catch(e) {
     showToast('Booking failed: '+e.message,'error');
-    btn.disabled=false; btn.textContent='Book Now — Pay 30% →';
+    btn.disabled=false; btn.textContent='Confirm Booking →';
   }
 };
 
 window.resetAll = function() {
-  selDate=null; selTime=null; selTurf=null; payMethod='bKash'; bookedMap={};
+  selDate=null; selTime=null; selTurf=null; bookedMap={};
   document.getElementById('btn1').disabled=true;
   document.getElementById('btn2').disabled=true;
   document.getElementById('timeSection').style.display='none';
   document.getElementById('inviteSection').style.display='none';
   document.getElementById('phoneInput').value='';
-  document.querySelectorAll('.pay-opt').forEach(e=>e.classList.remove('selected'));
-  document.getElementById('pm-bKash').classList.add('selected');
+  document.getElementById('nameInput').value='';
+  document.getElementById('emailInput').value='';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page1').classList.add('active');
   setStepState(1);
@@ -641,14 +662,14 @@ function nextHour(t) {
 
 // Turf data — edit prices here directly
 const DEFAULT_TURFS = [
-  {id:'t1', name:'Cumilla Turf Zone', addr:'Noapara Road, Cumilla', price:1200, tags:['Floodlit','Parking','Changing Room']},
-  {id:'t2', name:'S.K. Sports Arena', addr:'Jafar Khan Road, Race Course, Cumilla', price:2000, tags:['Premium','Floodlit','Cafeteria'],
+  {id:'t1', name:'Cumilla Turf Zone', addr:'Noapara Road, Cumilla', price:1200, tags:['Floodlit','Parking','Changing Room'], emoji:'🏟️'},
+  {id:'t2', name:'S.K. Sports Arena', addr:'Jafar Khan Road, Race Course, Cumilla', price:2000, tags:['Premium','Floodlit','Cafeteria'], emoji:'⚽',
     pricing:{day:2000, night:3000, dayStart:14, dayEnd:17}},
-  {id:'t3', name:'Bhuiyan Turf Ground', addr:'Shatora, Cumilla', price:900, tags:['Outdoor','Affordable']},
-  {id:'t4', name:'A.K Sports Complex', addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100, tags:['Floodlit','Changing Room']},
-  {id:'t5', name:'K.Ali Sports Complex', addr:'Noapara Road, Cumilla', price:1000, tags:['Indoor','AC Changing Room']},
-  {id:'t6', name:'Cumilla Kings Arena', addr:'Telikona, Nurpur, Cumilla', price:1300, tags:['Premium','Parking','Floodlit']},
-  {id:'t7', name:'Khandakar S.A Sports Arena', addr:'Maghigcha, Cumilla', price:950, tags:['Affordable','Floodlit']},
+  {id:'t3', name:'Bhuiyan Turf Ground', addr:'Shatora, Cumilla', price:900, tags:['Outdoor','Affordable'], emoji:'🌿'},
+  {id:'t4', name:'A.K Sports Complex', addr:'ABC Bricks Field, Coatbari Road, Doulotpur, Cumilla', price:1100, tags:['Floodlit','Changing Room'], emoji:'🏅'},
+  {id:'t5', name:'K.Ali Sports Complex', addr:'Noapara Road, Cumilla', price:1000, tags:['Indoor','AC Changing Room'], emoji:'🎯'},
+  {id:'t6', name:'Cumilla Kings Arena', addr:'Telikona, Nurpur, Cumilla', price:1300, tags:['Premium','Parking','Floodlit'], emoji:'👑'},
+  {id:'t7', name:'Khandakar S.A Sports Arena', addr:'Maghigcha, Cumilla', price:950, tags:['Affordable','Floodlit'], emoji:'⭐'},
 ];
 
 // Get price for a turf based on selected time slot
